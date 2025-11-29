@@ -1,3 +1,30 @@
 spring:
   application:
     name: com.college_management_system
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/college_management_system?useSSL=false&serverTimezone=UTC
+    username: root
+    password: your_password_here
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update   # use 'validate' in production
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+# File upload config (your QRFileStorageConfig uses these)
+file:
+  upload-dir: uploads/qr
+
+app:
+  base-url: http://localhost:8080
+
+logging:
+  level:
+    root: INFO
+    org.springframework: INFO

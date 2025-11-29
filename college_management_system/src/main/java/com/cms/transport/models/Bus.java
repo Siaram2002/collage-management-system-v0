@@ -2,7 +2,6 @@ package com.cms.transport.models;
 
 import com.cms.college.models.Contact;
 import com.cms.common.enums.Status;
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -15,24 +14,34 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-
+@AllArgsConstructor
+@Builder
 public class Bus {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long busId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long busId;
 
-	private String busNumber;
-	private String registrationNumber;
-	private Integer seatingCapacity;
+    @Column(nullable = false, unique = true)
+    private String busNumber;
 
-	@Enumerated(EnumType.STRING)
-	private Status status = Status.ACTIVE;
+    private String registrationNumber;
+    private Integer seatingCapacity;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "contact_id")
-	private Contact contact;
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.ACTIVE;
 
-	@OneToOne(mappedBy = "bus", cascade = CascadeType.ALL, orphanRemoval = true)
-	private GPSDevice gpsDevice;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
+    @JoinColumn(name = "gps_id")
+    private GPSDevice gpsDevice;
+
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "contact_id")
+    private Contact contact;
+
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

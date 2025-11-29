@@ -1,33 +1,20 @@
 package com.cms.transport.models;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-
+import com.cms.common.enums.Status;
+import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "bus_assignments",
         uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"bus_id", "assignment_date", "shift"}),
-                @UniqueConstraint(columnNames = {"driver_id", "assignment_date", "shift"})
-})
+                @UniqueConstraint(columnNames = {"bus_id", "assignment_date"}),
+                @UniqueConstraint(columnNames = {"driver_id", "assignment_date"})
+        })
 @Getter
 @Setter
 @NoArgsConstructor
@@ -42,7 +29,6 @@ public class BusAssignment {
     // -----------------------------------------
     // Relations
     // -----------------------------------------
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bus_id", nullable = false)
     private Bus bus;
@@ -55,28 +41,25 @@ public class BusAssignment {
     @JoinColumn(name = "route_id", nullable = false)
     private Route route;
 
-    // -----------------------------------------
-    // Assignment Details
-    // -----------------------------------------
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "gps_id", nullable = true)
+    private GPSDevice gpsDevice; // optional GPS per assignment
 
+    // -----------------------------------------
+    // Assignment Metadata
+    // -----------------------------------------
     @Column(nullable = false)
-    private LocalDate assignmentDate;    // day of assignment
+    private LocalDate assignmentDate;  // date of assignment
 
-
-
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.ACTIVE;
 
     @Column(length = 255)
-    private String notes;                // Optional admin note
+    private String notes;              // optional admin notes
 
-    // For knowing when assignment ends
-    private LocalDate endDate;
-
-    // -----------------------------------------
-    // Auditing
-    // -----------------------------------------
+    private LocalDate endDate;         // optional, for multi-day assignments
 
     @CreationTimestamp
-    @Column(updatable = false)
     private LocalDateTime assignedAt;
 
     @UpdateTimestamp

@@ -1,9 +1,9 @@
 package com.cms.students.models;
 
 import jakarta.persistence.*;
+
 import lombok.*;
 
-import org.apache.catalina.User;
 import org.apache.el.parser.AstFalse;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -11,6 +11,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.cms.college.models.Contact;
 import com.cms.college.models.Course;
 import com.cms.college.models.Department;
+import com.cms.college.models.User;
+import com.cms.students.enums.EnrollmentStatus;
+import com.cms.students.enums.StudentStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -68,11 +71,13 @@ public class Student {
 	@Column(nullable = false, length = 20)
 	private String rollNumber;
 
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
-	private String status; // ACTIVE / INACTIVE
+	private StudentStatus status;
 
+	@Enumerated(EnumType.STRING)
 	@Column(nullable = false, length = 20)
-	private String enrollmentStatus; // ACTIVE / GRADUATED / DROPPED
+	private EnrollmentStatus enrollmentStatus;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")
@@ -101,8 +106,8 @@ public class Student {
 	@Column(length = 255)
 	private String qrUrl; // QR code URL for ID card / attendance / library etc.
 
-	@Column(nullable = false)
-	private Boolean profileVerified = false;
+//	@Column(nullable = false)
+//	private Boolean profileVerified = false;
 
 	@CreationTimestamp
 	private LocalDateTime createdAt;

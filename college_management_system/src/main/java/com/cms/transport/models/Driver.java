@@ -1,6 +1,7 @@
 package com.cms.transport.models;
 
 import jakarta.persistence.*;
+
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -8,12 +9,14 @@ import org.hibernate.annotations.UpdateTimestamp;
 import com.cms.college.models.Address;
 import com.cms.college.models.Contact;
 import com.cms.college.models.User;
+
 import com.cms.common.enums.Status;
+import com.cms.transport.enums.DriverStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Data
+
 
 @Entity
 @Table(name = "drivers", uniqueConstraints = { @UniqueConstraint(columnNames = "licenseNumber") })
@@ -38,7 +41,7 @@ public class Driver {
 	private LocalDate licenseExpiryDate;
 
 	@Enumerated(EnumType.STRING)
-	private Status status = Status.ACTIVE;
+	private DriverStatus status = DriverStatus.INACTIVE;
 
 	@OneToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id")

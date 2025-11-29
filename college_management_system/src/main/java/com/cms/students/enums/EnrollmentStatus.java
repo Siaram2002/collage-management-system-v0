@@ -1,23 +1,20 @@
-package com.cms.common.enums;
-
+package com.cms.students.enums;
 
 
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
-public enum StudentStatus {
-    PENDING("PENDING"),
-    ENROLLED("ENROLLED"),
+public enum EnrollmentStatus {
+    ACTIVE("ACTIVE"),
     GRADUATED("GRADUATED"),
-    DROPPED_OUT("DROPPED_OUT"),
+    DROPPED("DROPPED"),
     SUSPENDED("SUSPENDED"),
-    ON_LEAVE("ON_LEAVE"),
-    EXPELLED("EXPELLED");
+    ON_LEAVE("ON_LEAVE");
 
     private final String value;
 
-    StudentStatus(String value) {
+    EnrollmentStatus(String value) {
         this.value = value;
     }
 
@@ -27,12 +24,12 @@ public enum StudentStatus {
     }
 
     @JsonCreator
-    public static StudentStatus fromValue(String value) {
-        for (StudentStatus status : values()) {
+    public static EnrollmentStatus fromValue(String value) {
+        for (EnrollmentStatus status : values()) {
             if (status.value.equalsIgnoreCase(value)) {
                 return status;
             }
         }
-        throw new IllegalArgumentException("Unknown student status: " + value);
+        throw new IllegalArgumentException("Unknown enrollment status: " + value);
     }
 }
