@@ -1,7 +1,8 @@
 package com.cms.transport.models;
 
 import com.cms.college.models.Contact;
-import com.cms.common.enums.Status;
+import com.cms.transport.enums.BusStatus;
+
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -29,7 +30,7 @@ public class Bus {
     private Integer seatingCapacity;
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.ACTIVE;
+    private BusStatus status = BusStatus.INACTIVE;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
     @JoinColumn(name = "gps_id")
