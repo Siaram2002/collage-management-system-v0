@@ -12,64 +12,48 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "gps_devices")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "gps_devices",
+       indexes = {
+           @Index(name = "idx_device_serial", columnList = "deviceSerialNumber"),
+           @Index(name = "idx_last_ping", columnList = "lastPingAt")
+       })
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class GPSDevice {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long gpsId;
 
-    // Unique Serial / IMEI / Device ID
     @Column(nullable = false, unique = true)
     private String deviceSerialNumber;
 
-    private String provider; // Teltonika, SecuTrak, Letstrack, etc.
+    private String provider;
 
     @Enumerated(EnumType.STRING)
-    private GPSStatus status = GPSStatus.ACTIVE; // ACTIVE, INACTIVE, DAMAGED, LOST
+    private GPSStatus status = GPSStatus.ACTIVE;
 
-    // ---------------------------
-    // Installed on BUS currently
-    // Real world: GPS device can be moved from Bus A → Bus B
-    // ---------------------------
+    // Current bus installation (read-only backref)
     @OneToOne(mappedBy = "gpsDevice", fetch = FetchType.LAZY)
     private Bus bus;
 
-    // ---------------------------
-    // Assignment history
-    // ---------------------------
+    // Assignment history (many assignments can use same device over time)
     @OneToMany(mappedBy = "gpsDevice", cascade = CascadeType.ALL)
     @Builder.Default
     private List<BusAssignment> busAssignments = new ArrayList<>();
 
-    // ---------------------------
-    // Health Status / Metadata
-    // ---------------------------
-    private LocalDateTime lastPingAt; // last time device sent location
-//    private Integer batteryLevel;      // % if device has battery
-//    private Boolean ignitionOn;        // last known ignition state
+    // Health telemetry
+    private LocalDateTime lastPingAt;
+    private Integer batteryLevel;   // nullable % (if device supports)
+    private Boolean ignitionOn;     // last known ignition state
 
-    // Installation metadata
-//    private LocalDateTime installedAt;
-//    private String installedBy;
-
-    // ---------------------------
-    // Audit
-    // ---------------------------
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    // Utility
     public void addBusAssignment(BusAssignment assignment) {
-        busAssignments.add(assignment);
+        this.busAssignments.add(assignment);
         assignment.setGpsDevice(this);
     }
 }

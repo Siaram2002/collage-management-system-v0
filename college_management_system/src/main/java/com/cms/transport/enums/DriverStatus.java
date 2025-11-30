@@ -13,23 +13,9 @@ public enum DriverStatus {
     SUSPENDED("SUSPENDED"),       // Temporarily suspended
     ON_LEAVE("ON_LEAVE"),         // On leave (medical, personal, etc.)
 
-    // -------------------------
-    // Assignment & Duty States
-    // -------------------------
-    AVAILABLE("AVAILABLE"),       // Not assigned to any bus
-    ASSIGNED("ASSIGNED"),         // Currently assigned to a bus/route
-    ON_DUTY("ON_DUTY"),           // Actively driving right now
-    OFF_DUTY("OFF_DUTY"),         // End of shift but still active employee
 
-    // -------------------------
-    // Safety & Special Conditions
-    // -------------------------
-    TRAINING("TRAINING"),         // Under training or certification
-    UNFIT("UNFIT"),               // Not fit for duty (medical/accident reasons)
 
-    // -------------------------
-    // For any unforeseen cases
-    // -------------------------
+
     OTHER("OTHER");
 
     private final String value;

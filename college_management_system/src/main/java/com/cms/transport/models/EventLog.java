@@ -1,54 +1,50 @@
 package com.cms.transport.models;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
-import com.cms.transport.enums.EventType;
-import com.cms.transport.enums.ModuleName;
-
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
-@Table(name = "event_logs")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "event_logs",
+       indexes = {
+           @Index(name = "idx_event_entity_time", columnList = "entityName, entityId, timestamp"),
+           @Index(name = "idx_event_type_time", columnList = "eventType, timestamp")
+       })
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class EventLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Long eventId;
 
-    @Enumerated(EnumType.STRING)
-    private EventType eventType;
-
-    @Enumerated(EnumType.STRING)
-    private ModuleName module;
-
-    // Name of the entity/table (Bus, Driver, GPSDevice, Assignment)
+    // Example: "BusAssignment", "Driver", "GPSLog"
     private String entityName;
 
-    // Id of record changed
-    private Long recordId;
+    // id of the row changed (assignmentId / driverId / busId)
+    private Long entityId;
 
-    // Optional additional info
-    private String description;
+    // Example: "ASSIGNMENT_CREATED", "DRIVER_LEAVE", "FIELD_UPDATED"
+    private String eventType;
 
-    // User who performed action
-    private Long performedByUserId;
+    // Optional: name of the field changed (for field-level audit)
+    private String fieldName;
 
-    // On which device or system  
-    private String source; // Web, Mobile, Backend, CRON, GPS, API etc.
+    // Old and new values (store as stringified JSON or plain text)
+    @Column(columnDefinition = "TEXT")
+    private String oldValue;
+
+    @Column(columnDefinition = "TEXT")
+    private String newValue;
+
+    // Who triggered (system / admin username / service)
+    private String performedBy;
 
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private LocalDateTime timestamp;
 
-    // Relationship to field-level logs
-    @OneToMany(mappedBy = "eventLog", cascade = CascadeType.ALL)
-    private List<EventLogDetail> details;
+    // Optional: extra context (trip id, gps id, etc.)
+    @Column(columnDefinition = "TEXT")
+    private String details;
 }

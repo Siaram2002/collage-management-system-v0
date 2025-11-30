@@ -10,11 +10,21 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "bus_assignments",
-        uniqueConstraints = {
-                @UniqueConstraint(columnNames = {"bus_id", "assignment_date"}),
-                @UniqueConstraint(columnNames = {"driver_id", "assignment_date"})
-        })
+@Table(
+    name = "bus_assignments",
+    indexes = {
+        @Index(
+            name = "idx_bus_active_unique",
+            columnList = "bus_id, assignment_date, active_flag",
+            unique = true
+        ),
+        @Index(
+            name = "idx_driver_active_unique",
+            columnList = "driver_id, assignment_date, active_flag",
+            unique = true
+        )
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -26,9 +36,6 @@ public class BusAssignment {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long assignmentId;
 
-    // -----------------------------------------
-    // Relations
-    // -----------------------------------------
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bus_id", nullable = false)
     private Bus bus;
@@ -42,22 +49,25 @@ public class BusAssignment {
     private Route route;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gps_id", nullable = true)
-    private GPSDevice gpsDevice; // optional GPS per assignment
+    @JoinColumn(name = "gps_id")
+    private GPSDevice gpsDevice;
 
-    // -----------------------------------------
-    // Assignment Metadata
-    // -----------------------------------------
     @Column(nullable = false)
-    private LocalDate assignmentDate;  // date of assignment
+    private LocalDate assignmentDate;
 
     @Enumerated(EnumType.STRING)
     private Status status = Status.ACTIVE;
 
-    @Column(length = 255)
-    private String notes;              // optional admin notes
+    private LocalDate endDate;
 
-    private LocalDate endDate;         // optional, for multi-day assignments
+    @Column(length = 255)
+    private String notes;
+
+    // ----------------------------
+    // GENERATED COLUMN (IMPORTANT)
+    // ----------------------------
+    @Column(name = "active_flag", insertable = false, updatable = false)
+    private Integer activeFlag;
 
     @CreationTimestamp
     private LocalDateTime assignedAt;

@@ -11,12 +11,11 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "buses")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "buses",
+       indexes = {
+           @Index(name = "idx_bus_number", columnList = "busNumber")
+       })
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Bus {
 
     @Id
@@ -32,7 +31,8 @@ public class Bus {
     @Enumerated(EnumType.STRING)
     private BusStatus status = BusStatus.INACTIVE;
 
-    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, optional = true)
+    // Current installed device (nullable)
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "gps_id")
     private GPSDevice gpsDevice;
 
