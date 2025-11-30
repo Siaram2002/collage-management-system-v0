@@ -1,4 +1,4 @@
-package com.cms.transport.models.repositories;
+package com.cms.transport.repositories;
 
 import com.cms.transport.models.Route;
 import com.cms.common.enums.Status;

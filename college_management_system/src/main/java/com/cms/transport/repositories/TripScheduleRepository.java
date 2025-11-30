@@ -1,4 +1,4 @@
-package com.cms.transport.models.repositories;
+package com.cms.transport.repositories;
 
 import com.cms.transport.models.TripSchedule;
 import com.cms.transport.models.BusAssignment;

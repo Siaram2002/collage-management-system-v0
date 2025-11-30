@@ -1,4 +1,4 @@
-package com.cms.transport.models.repositories;
+package com.cms.transport.repositories;
 
 import com.cms.transport.models.EventLog;
 import org.springframework.data.jpa.repository.JpaRepository;
