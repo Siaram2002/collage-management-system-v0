@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERD — Transport System (Animated)</title>
+  <style>
+    :root{--bg:#0b1220;--card:#071226;--accent:#7c3aed;--accent2:#1fb6ff;--muted:#9fb0c8;--glass:rgba(255,255,255,0.035);--radius:10px}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#05101a 0%, #07122a 100%);font-family:Inter,system-ui,Arial;color:#e6f7ff}
+    .wrap{padding:28px;display:flex;flex-direction:column;gap:18px}
+    h1{font-size:20px;margin:0 0 6px 0}
+    p.lead{margin:0;color:var(--muted);font-size:13px}
+
+    /* canvas */
+    .canvas{position:relative;width:100%;min-height:720px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);border-radius:14px;padding:22px;box-shadow:0 10px 30px rgba(2,6,23,0.6);overflow:hidden}
+
+    /* grid for entities */
+    .grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px;align-items:start}
+    .entity{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.03);box-shadow:0 6px 18px rgba(2,6,23,0.5);position:relative;transform:translateY(20px);opacity:0;animation:pop 700ms forwards;}
+    .entity.delay-1{animation-delay:120ms}
+    .entity.delay-2{animation-delay:260ms}
+    .entity.delay-3{animation-delay:380ms}
+    .entity h3{margin:0;font-size:14px}
+    .fields{margin-top:8px;font-size:13px;color:var(--muted);line-height:1.6}
+    .pk{color:var(--accent);font-weight:700}
+
+    @keyframes pop{to{transform:none;opacity:1}}
+
+    /* connectors (SVG sits behind boxes) */
+    .connector-svg{position:absolute;inset:0;pointer-events:none}
+    .line{stroke:rgba(255,255,255,0.08);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+    .line.accent{stroke:linear-gradient(90deg,var(--accent),var(--accent2));}
+    .line.draw{stroke-dasharray:400;stroke-dashoffset:400;animation:draw 1400ms ease-out forwards}
+    @keyframes draw{to{stroke-dashoffset:0}}
+
+    /* crow's feet markers style using small path markers */
+
+    /* legend */
+    .legend{display:flex;gap:12px;margin-top:12px;align-items:center}
+    .legend .dot{width:12px;height:12px;border-radius:3px;background:var(--accent)}
+
+    /* responsive */
+    @media(max-width:900px){.grid{grid-template-columns:1fr 1fr}.canvas{min-height:960px}}
+    @media(max-width:600px){.grid{grid-template-columns:1fr}.canvas{min-height:1400px}}
+
+    /* subtle hover */
+    .entity:hover{transform:translateY(-6px);box-shadow:0 18px 36px rgba(12,18,35,0.7)}
+
+    /* animated pulse on relationship points */
+    .pulse{position:absolute;width:12px;height:12px;border-radius:50%;background:var(--accent2);box-shadow:0 0 18px rgba(31,182,255,0.12);opacity:0.9;transform:translate(-50%,-50%);animation:pulse 2200ms infinite}
+    @keyframes pulse{0%{transform:translate(-50%,-50%) scale(0.9);opacity:0.9}50%{transform:translate(-50%,-50%) scale(1.25);opacity:0.45}100%{transform:translate(-50%,-50%) scale(0.9);opacity:0.9}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div>
+      <h1>ER Diagram — Transport Management (Animated)</h1>
+      <p class="lead">Interactive HTML/CSS ERD with animated connectors. Boxes are draggable on desktop — try moving them for clarity.</p>
+    </div>
+
+    <div class="canvas" id="canvas">
+      <!-- SVG connectors (drawn by JS to match box positions) -->
+      <svg class="connector-svg" id="svg"></svg>
+
+      <div class="grid" id="grid">
+        <div>
+          <div class="entity delay-1" id="entity-route">
+            <h3>Route</h3>
+            <div class="fields"><div><span class="pk">routeId</span> PK</div><div>routeName</div><div>description</div><div>status</div><div>createdAt</div></div>
+          </div>
+
+          <div style="height:18px"></div>
+
+          <div class="entity delay-2" id="entity-routestep">
+            <h3>RouteStep</h3>
+            <div class="fields"><div><span class="pk">stepId</span> PK</div><div>route_id FK</div><div>stopName</div><div>stepOrder</div><div>latitude, longitude</div></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="entity delay-2" id="entity-bus">
+            <h3>Bus</h3>
+            <div class="fields"><div><span class="pk">busId</span> PK</div><div>busNumber</div><div>registrationNumber</div><div>seatingCapacity</div><div>gps_id FK</div></div>
+          </div>
+
+          <div style="height:18px"></div>
+
+          <div class="entity delay-3" id="entity-gps">
+            <h3>GPSDevice</h3>
+            <div class="fields"><div><span class="pk">gpsId</span> PK</div><div>deviceSerialNumber</div><div>provider</div><div>status</div><div>lastPingAt</div></div>
+          </div>
+        </div>
+
+        <div>
+          <div class="entity delay-1" id="entity-driver">
+            <h3>Driver</h3>
+            <div class="fields"><div><span class="pk">driverId</span> PK</div><div>fullName</div><div>licenseNumber</div><div>licenseExpiryDate</div><div>status</div></div>
+          </div>
+
+          <div style="height:18px"></div>
+
+          <div class="entity delay-3" id="entity-assignment">
+            <h3>BusAssignment</h3>
+            <div class="fields"><div><span class="pk">assignmentId</span> PK</div><div>bus_id FK</div><div>driver_id FK</div><div>route_id FK</div><div>gps_id FK</div><div>assignmentDate</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- lower row: logs & events -->
+      <div style="position:absolute;left:22px;right:22px;bottom:22px;display:flex;gap:22px">
+        <div class="entity" id="entity-gpslog" style="width:360px">
+          <h3>GPSLog</h3>
+          <div class="fields"><div><span class="pk">id</span> PK</div><div>gps_id FK</div><div>assignment_id FK</div><div>latitude, longitude</div><div>recordedAt, serverReceivedAt</div></div>
+        </div>
+
+        <div class="entity" id="entity-eventlog" style="width:360px">
+          <h3>EventLog</h3>
+          <div class="fields"><div><span class="pk">id</span> PK</div><div>eventType</div><div>module</div><div>entityName, recordId</div><div>performedByUserId, source</div></div>
+        </div>
+
+        <div class="entity" id="entity-eventdetail" style="width:320px">
+          <h3>EventLogDetail</h3>
+          <div class="fields"><div><span class="pk">id</span> PK</div><div>event_log_id FK</div><div>fieldName</div><div>oldValue</div><div>newValue</div></div>
+        </div>
+      </div>
+
+      <!-- small animated pulses to highlight relationship points (positioned by JS) -->
+      <div class="pulse" id="p1" style="display:none"></div>
+      <div class="pulse" id="p2" style="display:none"></div>
+      <div class="pulse" id="p3" style="display:none"></div>
+    </div>
+
+    <div class="legend"><div class="dot"></div><div>Primary keys in <strong>highlight</strong>. FK columns noted. Lines animate on load.</div></div>
+  </div>
+
+  <script>
+    // Utility to get element center
+    function center(el){
+      const r = el.getBoundingClientRect();
+      const parent = document.getElementById('canvas').getBoundingClientRect();
+      return {x: r.left - parent.left + r.width/2, y: r.top - parent.top + r.height/2};
+    }
+
+    function buildLine(x1,y1,x2,y2,opts={}){
+      const xmlns = "http://www.w3.org/2000/svg";
+      const line = document.createElementNS(xmlns,'path');
+      const dx = Math.abs(x2-x1);
+      const dy = Math.abs(y2-y1);
+      // simple curved path
+      const cx1 = x1 + (x2>x1? Math.min(120,dx/2): -Math.min(120,dx/2));
+      const cy1 = y1;
+      const cx2 = x2 + (x1>x2? Math.min(120,dx/2): -Math.min(120,dx/2));
+      const cy2 = y2;
+      const d = `M ${x1} ${y1} C ${cx1} ${cy1} ${cx2} ${cy2} ${x2} ${y2}`;
+      line.setAttribute('d',d);
+      line.setAttribute('class','line draw');
+      if(opts.stroke) line.setAttribute('stroke',opts.stroke);
+      if(opts.opacity) line.setAttribute('stroke-opacity',opts.opacity);
+      if(opts['marker-end']) line.setAttribute('marker-end',opts['marker-end']);
+      return line;
+    }
+
+    function drawRelationships(){
+      const svg = document.getElementById('svg');
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+      const pairs = [
+        // Route -> RouteStep
+        ['entity-route','entity-routestep'],
+        // Route -> BusAssignment
+        ['entity-route','entity-assignment'],
+        // Bus -> GPSDevice (1-1)
+        ['entity-bus','entity-gps'],
+        // Bus -> BusAssignment
+        ['entity-bus','entity-assignment'],
+        // Driver -> BusAssignment
+        ['entity-driver','entity-assignment'],
+        // GPSDevice -> BusAssignment
+        ['entity-gps','entity-assignment'],
+        // GPSDevice -> GPSLog
+        ['entity-gps','entity-gpslog'],
+        // BusAssignment -> GPSLog
+        ['entity-assignment','entity-gpslog'],
+        // EventLog -> EventLogDetail
+        ['entity-eventlog','entity-eventdetail']
+      ];
+
+      // define marker (crow's foot style simplified)
+      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const marker = document.createElementNS('http://www.w3.org/2000/svg','marker');
+      marker.setAttribute('id','arrow'); marker.setAttribute('markerWidth','8'); marker.setAttribute('markerHeight','8'); marker.setAttribute('refX','6'); marker.setAttribute('refY','3'); marker.setAttribute('orient','auto');
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d','M0,0 L0,6 L6,3 z'); path.setAttribute('fill','rgba(255,255,255,0.12)');
+      marker.appendChild(path); defs.appendChild(marker);
+      svg.appendChild(defs);
+
+      pairs.forEach((p,i)=>{
+        const a = document.getElementById(p[0]);
+        const b = document.getElementById(p[1]);
+        if(!a||!b) return;
+        const A = center(a); const B = center(b);
+        // slightly offset endpoints toward edges
+        const dx = B.x - A.x, dy = B.y - A.y;
+        const dist = Math.sqrt(dx*dx+dy*dy);
+        const ax = A.x + (dx/dist)*80; const ay = A.y + (dy/dist)*40;
+        const bx = B.x - (dx/dist)*80; const by = B.y - (dy/dist)*40;
+        const line = buildLine(ax,ay,bx,by,{stroke:'rgba(255,255,255,0.06)'});
+        // stagger animation
+        line.style.animationDelay = (i*120)+'ms';
+        svg.appendChild(line);
+
+        // add small pulse at middle
+        const midX = (ax+bx)/2; const midY = (ay+by)/2;
+        const pulse = document.getElementById('p'+((i%3)+1));
+        if(pulse){ pulse.style.left = midX+'px'; pulse.style.top = midY+'px'; pulse.style.display='block'; setTimeout(()=>pulse.style.display='block', i*100); }
+      });
+    }
+
+    // initial draw + redraw on resize
+    window.addEventListener('load',()=>{ drawRelationships(); enableDrag(); });
+    window.addEventListener('resize',()=>{ drawRelationships(); });
+
+    // Make boxes draggable (desktop) for interactive layout
+    function enableDrag(){
+      const canvas = document.getElementById('canvas');
+      const items = canvas.querySelectorAll('.entity');
+      items.forEach(el=>{
+        el.style.position='absolute';
+        // place according to existing layout
+        const rect = el.getBoundingClientRect();
+        const parent = canvas.getBoundingClientRect();
+        el.style.left = (rect.left - parent.left) + 'px';
+        el.style.top = (rect.top - parent.top) + 'px';
+        el.style.width = rect.width + 'px';
+
+        let isDown=false, startX=0, startY=0, origX=0, origY=0;
+        el.addEventListener('pointerdown', (ev)=>{
+          if(ev.button!==0) return;
+          isDown=true; startX=ev.clientX; startY=ev.clientY; origX = parseFloat(el.style.left); origY = parseFloat(el.style.top);
+          el.setPointerCapture(ev.pointerId);
+        });
+        el.addEventListener('pointermove', (ev)=>{
+          if(!isDown) return;
+          const dx = ev.clientX - startX; const dy = ev.clientY - startY;
+          el.style.left = (origX + dx)+'px'; el.style.top = (origY + dy)+'px';
+          drawRelationships();
+        });
+        el.addEventListener('pointerup', (ev)=>{ isDown=false; el.releasePointerCapture(ev.pointerId); });
+      });
+    }
+
+  </script>
+</body>
+</html>
