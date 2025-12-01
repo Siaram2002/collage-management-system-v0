@@ -61,4 +61,26 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 
     List<Driver> findAllByOrderByCreatedAtDesc();
     List<Driver> findAllByOrderByFullNameAsc();
+
+
+    /**
+     * Find a driver by their unique license number
+     * @param licenseNumber license number of the driver
+     * @return Optional containing the driver if found
+     */
+//    Optional<Driver> findByLicenseNumber(String licenseNumber);
+//
+//    /**
+//     * Find all drivers by their current status (ACTIVE / INACTIVE)
+//     * @param status DriverStatus enum
+//     * @return List of drivers with the given status
+//     */
+//    List<Driver> findByStatus(DriverStatus status);
+//
+//
+//
+//
+//    // Check if a driver with given license exists
+//    boolean existsByLicenseNumber(String licenseNumber);
+
 }
