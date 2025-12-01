@@ -1,13 +1,11 @@
 package com.cms.college.models;
 
-
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 import java.time.LocalDateTime;
 
@@ -29,33 +27,35 @@ public class Course {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long courseId;
 
+    // Mark this side as back reference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "department_id", nullable = false)
-    private Department department; // Each course belongs to a department
+    @JsonBackReference
+    private Department department;
 
     @Column(nullable = false, length = 100)
-    private String name; // e.g., "B.Tech Computer Science"
+    private String name;
 
     @Column(nullable = false, length = 20)
-    private String courseCode; // Unique code, e.g., "CSE-BT"
+    private String courseCode;
 
     @Column(nullable = false, length = 20)
-    private String courseType; // UG / PG / Diploma / Certificate
+    private String courseType;
 
     @Column(nullable = false)
-    private Double durationYears; // Example: 4.0 for 4-year UG
+    private Double durationYears;
 
     @Column(nullable = false)
-    private Integer totalSemesters; // Example: 8 for 4-year UG
+    private Integer totalSemesters;
 
     @Column(nullable = false, length = 20)
-    private String status; // ACTIVE / INACTIVE
+    private String status;
 
     @Column(columnDefinition = "TEXT")
-    private String eligibilityCriteria; // Optional real-time field
+    private String eligibilityCriteria;
 
     @Column(length = 255)
-    private String syllabusUrl; // Optional, link to syllabus
+    private String syllabusUrl;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -63,4 +63,3 @@ public class Course {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 }
-

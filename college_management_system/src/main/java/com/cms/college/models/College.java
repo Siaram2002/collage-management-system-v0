@@ -7,12 +7,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 
-@Data
 @Entity
-@Builder
+@Table(name = "college")
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "college")
+@Builder
 public class College {
 
     @Id
@@ -26,14 +26,6 @@ public class College {
     private String collegeCode;
 
     @OneToOne
-    @JoinColumn(name = "chairman_id", nullable = false)
-    private Chairman chairman;
-
-    @OneToOne
-    @JoinColumn(name = "principal_id", nullable = false)
-    private Principal principal;
-
-    @OneToOne
     @JoinColumn(name = "contact_id", nullable = false)
     private Contact contact;
 
@@ -42,7 +34,7 @@ public class College {
     private Address address;
 
     @Column(nullable = false, length = 20)
-    private String status;  // ACTIVE / INACTIVE
+    private String status; // ACTIVE / INACTIVE
 
     @CreationTimestamp
     private LocalDateTime createdAt;

@@ -1,30 +1,50 @@
 spring:
   application:
-    name: com.college_management_system
+    name: college_management_system
 
   datasource:
     url: jdbc:mysql://localhost:3306/college_management_system?useSSL=false&serverTimezone=UTC
     username: root
-    password: your_password_here
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
   jpa:
     hibernate:
-      ddl-auto: update   # use 'validate' in production
-    show-sql: true
+      ddl-auto: update
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: false
+        dialect: org.hibernate.dialect.MySQLDialect
 
-# File upload config (your QRFileStorageConfig uses these)
-file:
-  upload-dir: uploads/qr
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 20MB
 
-app:
-  base-url: http://localhost:8080
+# --------------------------
+# STUDENT QR CONFIGURATION
+# --------------------------
+qr:
+  secret-key: 12345678901234567890123456789012  # 32-byte AES key
+  width: 250
+  height: 250
+  storage:
+    base-dir: uploads/qr                  # base folder for QR storage
+    base-url: http://localhost:8080/files/qr
+    student-folder: students              # only student folder
+    file-extension: .png                  # add file extension here
+
+# --------------------------
+# STUDENT PHOTO CONFIG
+# --------------------------
+photo:
+  base-dir: uploads/photos/students       # only student photo folder
+  base-url: http://localhost:8080/files/photos/students
+  file-extension: .jpg                    # allowed extension for photos
 
 logging:
   level:
     root: INFO
     org.springframework: INFO
+    com.cms: DEBUG

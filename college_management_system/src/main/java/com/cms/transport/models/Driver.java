@@ -32,20 +32,22 @@ public class Driver {
     private LocalDate licenseExpiryDate;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private DriverStatus status = DriverStatus.INACTIVE;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "user_id")
     private User userAccount;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "contact_id")
     private Contact contact;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(name = "address_id")
     private Address address;
 
+    @Column(length = 512)
     private String photoUrl;
 
     @CreationTimestamp

@@ -6,7 +6,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Entity
 @Table(name = "roles", uniqueConstraints = @UniqueConstraint(columnNames = "roleName"))
@@ -19,12 +18,14 @@ import java.util.Set;
 @EqualsAndHashCode
 public class Role {
 
-    @Id
+
+
+	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long roleId;
 
     @Column(nullable = false, length = 50)
-    private String roleName; // Example: ADMIN, STUDENT, TEACHER
+    private String roleName; // e.g. PRINCIPAL, CHAIRMAN, HR_ADMIN
 
     @Column(length = 255)
     private String description;

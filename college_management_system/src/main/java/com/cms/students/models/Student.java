@@ -1,10 +1,8 @@
 package com.cms.students.models;
 
 import jakarta.persistence.*;
-
+import jakarta.validation.constraints.*;
 import lombok.*;
-
-import org.apache.el.parser.AstFalse;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -23,95 +21,105 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "student", uniqueConstraints = { @UniqueConstraint(columnNames = { "rollNumber" }),
-		@UniqueConstraint(columnNames = { "admissionNumber" }) })
+@Table(name = "student", uniqueConstraints = { 
+        @UniqueConstraint(columnNames = { "rollNumber" }),
+        @UniqueConstraint(columnNames = { "admissionNumber" }) 
+})
 public class Student {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long studentId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long studentId;
 
-	@Column(nullable = false, length = 50)
-	private String firstName;
+    @NotBlank(message = "First name is required")
+    @Size(max = 50)
+    @Column(nullable = false, length = 50)
+    private String firstName;
 
-	@Column(length = 50)
-	private String middleName;
+    @Size(max = 50)
+    @Column(length = 50)
+    private String middleName;
 
-	@Column(length = 50)
-	private String lastName;
+    @Size(max = 50)
+    @Column(length = 50)
+    private String lastName;
 
-	@Column(nullable = false)
-	private LocalDate dob;
+    @NotNull(message = "Date of birth is required")
+    @Column(nullable = false)
+    private LocalDate dob;
 
-	@Column(nullable = false, length = 10)
-	private String gender;
+    @NotBlank(message = "Gender is required")
+    @Size(max = 10)
+    @Column(nullable = false, length = 10)
+    private String gender;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "contact_id", nullable = false)
-	private Contact contact;
+    @NotNull(message = "Contact is required")
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "contact_id", nullable = false)
+    private Contact contact;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "guardian_contact_id")
-	private Contact guardianContact;
+    @NotNull(message = "Department is required")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "department_id", nullable = false)
-	private Department department;
+    @NotNull(message = "Course is required")
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "course_id", nullable = false)
+    private Course course;
 
-	@ManyToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "course_id", nullable = false)
-	private Course course;
+    @NotNull(message = "Admission year is required")
+    @Min(value = 1900)
+    @Column(nullable = false)
+    private Integer admissionYear;
 
-	@Column(nullable = false)
-	private Integer admissionYear;
+    @NotBlank(message = "Admission number is required")
+    @Size(max = 20)
+    @Column(nullable = false, length = 20)
+    private String admissionNumber;
 
-	@Column(nullable = false, length = 20)
-	private String admissionNumber;
+    @NotBlank(message = "Roll number is required")
+    @Size(max = 20)
+    @Column(nullable = false, length = 20)
+    private String rollNumber;
 
-	@Column(nullable = false, length = 20)
-	private String rollNumber;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private StudentStatus status = StudentStatus.ACTIVE;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 20)
-	private StudentStatus status;
+    @NotNull
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private EnrollmentStatus enrollmentStatus = EnrollmentStatus.ENROLLED;
 
-	@Enumerated(EnumType.STRING)
-	@Column(nullable = false, length = 20)
-	private EnrollmentStatus enrollmentStatus;
+    @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-	@OneToOne(fetch = FetchType.LAZY)
-	@JoinColumn(name = "user_id")
-	private User user;
+    @Size(max = 10)
+    @Column(length = 10)
+    private String bloodGroup;
 
-	@Column(length = 10)
-	private String bloodGroup;
+    @Size(max = 20)
+    @Column(length = 20)
+    private String category;
 
-	@Column(length = 20)
-	private String category;
+    @Size(max = 50)
+    @Column(length = 50)
+    private String nationality;
 
-	@Column(length = 50)
-	private String nationality;
+    @Size(max = 255)
+    @Column(length = 255)
+    private String photoUrl;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "transport_route_id")
-//    private TransportRoute transportRoute;
+    @Size(max = 255)
+    @Column(length = 255)
+    private String qrUrl;
 
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "hostel_id")
-//    private Hostel hostel;
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 
-	@Column(length = 255)
-	private String photoUrl;
-
-	@Column(length = 255)
-	private String qrUrl; // QR code URL for ID card / attendance / library etc.
-
-//	@Column(nullable = false)
-//	private Boolean profileVerified = false;
-
-	@CreationTimestamp
-	private LocalDateTime createdAt;
-
-	@UpdateTimestamp
-	private LocalDateTime updatedAt;
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
 }

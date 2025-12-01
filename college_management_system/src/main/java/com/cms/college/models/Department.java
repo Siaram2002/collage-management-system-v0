@@ -1,10 +1,10 @@
 package com.cms.college.models;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,6 +14,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Getter
+@Setter
 @Table(
     name = "department",
     uniqueConstraints = {
@@ -28,28 +30,27 @@ public class Department {
     private Long departmentId;
 
     @Column(nullable = false, length = 150)
-    private String name; // Full department name, e.g., "Computer Science"
+    private String name;
 
-    @Column(nullable = false, length = 20)
-    private String shortCode; // Short code, e.g., "CSE"
-
-//    @OneToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "hod_id")
-//    private Staff hod; // Optional Head of Department
+    @Column(name = "short_code", nullable = false, length = 20)
+    private String shortCode;
 
     @Column(nullable = false)
-    private Integer totalSeats; // Number of students for admissions
+    private Integer totalSeats;
 
     @Column(nullable = false)
-    private Integer establishedYear; // Year department was founded
+    private Integer establishedYear;
 
     @Column(nullable = false, length = 20)
-    private String status; // ACTIVE / INACTIVE
+    private String status;
 
-    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Course> courses; // Courses under this department
+    // Avoid sending courses when serializing department inside Student
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private List<Course> courses;
 
     @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
