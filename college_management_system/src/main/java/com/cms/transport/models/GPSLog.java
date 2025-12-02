@@ -28,7 +28,7 @@ public class GPSLog {
     // optional assignment reference (so we can say which driver/bus at that time)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignment_id")
-    private BusAssignment assignment;
+    private TransportAssignment assignment;
 
     // optional trip reference (morning/evening)
     @ManyToOne(fetch = FetchType.LAZY)

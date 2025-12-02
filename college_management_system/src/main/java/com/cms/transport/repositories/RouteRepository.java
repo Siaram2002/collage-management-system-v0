@@ -1,7 +1,8 @@
 package com.cms.transport.repositories;
 
-import com.cms.transport.models.Route;
 import com.cms.common.enums.Status;
+import com.cms.transport.route.models.Route;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

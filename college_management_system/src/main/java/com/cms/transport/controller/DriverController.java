@@ -1,7 +1,8 @@
 package com.cms.transport.controller;
 
-import com.cms.transport.dto.DriverRegisterRequest;
-import com.cms.transport.service.DriverService;
+import com.cms.transport.driver.dto.DriverRegisterRequest;
+import com.cms.transport.driver.service.DriverService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

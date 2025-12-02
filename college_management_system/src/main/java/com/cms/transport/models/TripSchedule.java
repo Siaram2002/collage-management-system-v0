@@ -4,8 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
 
-import com.cms.transport.enums.TripType;
-import com.cms.transport.enums.TripStatus;
+import com.cms.transport.bus.enums.TripStatus;
+import com.cms.transport.bus.enums.TripType;
 
 @Entity
 @Table(name = "trip_schedules",
@@ -22,7 +22,7 @@ public class TripSchedule {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assignment_id", nullable = false)
-    private BusAssignment busAssignment;
+    private TransportAssignment busAssignment;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

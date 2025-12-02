@@ -5,6 +5,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.cms.transport.bus.models.Bus;
 import com.cms.transport.enums.GPSStatus;
 
 import java.time.LocalDateTime;
@@ -36,10 +37,7 @@ public class GPSDevice {
     @OneToOne(mappedBy = "gpsDevice", fetch = FetchType.LAZY)
     private Bus bus;
 
-    // Assignment history (many assignments can use same device over time)
-    @OneToMany(mappedBy = "gpsDevice", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<BusAssignment> busAssignments = new ArrayList<>();
+
 
     // Health telemetry
     private LocalDateTime lastPingAt;
@@ -52,8 +50,5 @@ public class GPSDevice {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public void addBusAssignment(BusAssignment assignment) {
-        this.busAssignments.add(assignment);
-        assignment.setGpsDevice(this);
-    }
+
 }

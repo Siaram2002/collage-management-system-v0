@@ -1,9 +1,10 @@
 package com.cms.transport.repositories;
 
-import com.cms.transport.enums.LeaveStatus;
-import com.cms.transport.enums.LeaveType;
-import com.cms.transport.enums.TripType;
-import com.cms.transport.models.DriverLeaveRequest;
+import com.cms.transport.bus.enums.TripType;
+import com.cms.transport.driver.enums.LeaveStatus;
+import com.cms.transport.driver.enums.LeaveType;
+import com.cms.transport.driver.model.DriverLeaveRequest;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
