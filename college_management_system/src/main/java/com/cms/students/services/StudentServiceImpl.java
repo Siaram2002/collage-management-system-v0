@@ -76,6 +76,52 @@ public class StudentServiceImpl implements StudentService {
         log.info("Student created successfully: {}", saved.getRollNumber());
         return saved;
     }
+    
+    
+    @Override
+    @Transactional
+    public Student createStudentWithPhoto(Student student, MultipartFile photoFile) throws IOException {
+
+        log.info("Creating student with photo: {}", student.getRollNumber());
+
+        // Validate unique fields
+        validateStudentUnique(student);
+
+        // 1. Save student first (without photo)
+        Student saved = studentRepository.save(student);
+
+        // 2. Create linked user
+        User user = commonUserService.createUser(
+                saved.getRollNumber(),
+                "STUDENT",
+                saved.getStudentId(),
+                "stud@123",
+                saved.getContact()
+        );
+        saved.setUser(user);
+
+        // 3. If photo is provided → store it
+        if (photoFile != null && !photoFile.isEmpty()) {
+
+            String fileUrl = photoStorageService.storeStudentPhoto(
+                    saved.getRollNumber(),        // use roll number as unique image id
+                    photoFile.getBytes()
+            );
+
+            saved.setPhotoUrl(fileUrl);
+        }
+
+        // 4. Save updated student
+        saved = studentRepository.save(saved);
+
+        // 5. Generate QR async
+        generateQrAsync(saved);
+
+        log.info("Student created successfully with photo: {}", saved.getRollNumber());
+
+        return saved;
+    }
+
 
     private void validateStudentUnique(Student student) {
         if (studentRepository.existsByRollNumber(student.getRollNumber()))
@@ -306,25 +352,7 @@ public class StudentServiceImpl implements StudentService {
         return photoStorageService.deleteStudentPhoto(student.getRollNumber());
     }
 
-//    @Async("photoExecutor")
-//    public void uploadPhotosBulkAsync(Map<Long, byte[]> studentPhotoMap) {
-//        List<Student> students = studentRepository.findAllById(studentPhotoMap.keySet());
-//        Map<Long, Student> studentMap = students.stream().collect(Collectors.toMap(Student::getStudentId, s -> s));
-//
-//        studentPhotoMap.forEach((id, bytes) -> {
-//            Student student = studentMap.get(id);
-//            if (student != null) {
-//                try {
-//                    String url = photoStorageService.storeStudentPhoto(student.getRollNumber(), bytes);
-//                    student.setPhotoUrl(url);
-//                    studentRepository.save(student);
-//                    log.info("Bulk photo saved for student: {}", student.getRollNumber());
-//                } catch (IOException ex) {
-//                    log.error("Failed saving bulk photo for student ID={}", id, ex);
-//                }
-//            }
-//        });
-//    }
+
 
     // ------------------- BULK CSV -------------------
     @Transactional

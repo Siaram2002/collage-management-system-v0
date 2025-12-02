@@ -17,7 +17,8 @@ public class PhotoStorageService {
     private final StudentImgConfig studentImgConfig;
 
     /**
-     * Store only Student Photo
+     * Store or replace Student Photo
+     * If a photo already exists for this uniqueId, delete it first
      */
     public String storeStudentPhoto(String uniqueId, byte[] bytes) throws IOException {
 
@@ -30,11 +31,16 @@ public class PhotoStorageService {
             // Build file path <uniqueId>.png
             Path filePath = folder.resolve(studentImgConfig.buildFileName(uniqueId));
 
-            // Save file
+            // Delete existing file if it exists
+            if (Files.exists(filePath)) {
+                log.debug("Existing photo found for {}. Deleting it.", uniqueId);
+                Files.delete(filePath);
+            }
+
+            // Save new file
             try (var out = Files.newOutputStream(
                     filePath,
-                    StandardOpenOption.CREATE,
-                    StandardOpenOption.TRUNCATE_EXISTING
+                    StandardOpenOption.CREATE
             )) {
                 out.write(bytes);
             }
@@ -64,5 +70,13 @@ public class PhotoStorageService {
             log.error("Failed to delete student photo {}", uniqueId, e);
             return false;
         }
+    }
+
+    /**
+     * Update Student Photo
+     * Simply calls storeStudentPhoto since it already handles replacement
+     */
+    public String updateStudentPhoto(String uniqueId, byte[] newBytes) throws IOException {
+        return storeStudentPhoto(uniqueId, newBytes);
     }
 }

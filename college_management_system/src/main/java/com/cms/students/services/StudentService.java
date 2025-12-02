@@ -15,6 +15,7 @@ public interface StudentService {
 
     // CRUD
     Student createStudent(Student student);
+    public Student createStudentWithPhoto(Student student, MultipartFile photoFile) throws IOException;
     Student updateStudent(Long studentId, Student updatedStudent);
     void deleteStudent(Long studentId);
     Student getStudentById(Long studentId);

@@ -1,25 +1,45 @@
 package com.cms.transport.driver.service;
 
+import com.cms.transport.driver.dto.ScanResultDTO;
+import com.cms.transport.driver.model.Driver;
+
+
 import org.springframework.web.multipart.MultipartFile;
 
-import com.cms.transport.driver.dto.DriverRegisterRequest;
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
 
-import java.util.Map;
-
-// Service interface defining driver registration functionality
 public interface DriverService {
 
-    /**
-     * Registers a new driver or returns existing driver info.
-     * @param req Driver registration request
-     * @return Map with status, message, and driver data
-     */
-    Map<String, Object> registerDriver(DriverRegisterRequest req);
 
+    public Driver createDriverWithPhoto(Driver driver, MultipartFile photo) throws IOException;
+	public Driver updateDriverPhoto(Long driverId, MultipartFile photo) throws IOException ;
 
-//    String uploadDriverExcel(MultipartFile file);
+    Driver updateDriver(Long driverId, Driver updatedDriver);
 
-    // Bulk upload should be exposed
-    Map<String, Object> bulkUploadDriversExcel(MultipartFile file);
+    Driver getDriverById(Long driverId);
+
+    void deleteDriver(Long driverId);
+
+    List<Driver> getAllDrivers();
+
+    List<Driver> searchDrivers(String keyword);
+
+    Driver updateStatus(Long driverId, String status);
+
+    Driver updateLicenseDetails(Long driverId, String licenseNumber, LocalDate expiry);
+
+    Driver updatePhoto(Long driverId, MultipartFile photo) throws Exception;
+
+    Driver assignContact(Long driverId, Long contactId);
+
+    Driver assignAddress(Long driverId, Long addressId);
+
+    Driver assignUser(Long driverId, Long userId);
+
+    List<Driver> getDriversWithExpiredLicense();
+
+    void deleteAllDrivers();
+	ScanResultDTO driverScanResult(String qrData) throws Exception;
 }
-

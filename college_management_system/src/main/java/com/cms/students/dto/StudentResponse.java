@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 public class StudentResponse {
-    private Long studentId;
+
     private String firstName;
     private String middleName;
     private String lastName;
@@ -16,9 +16,8 @@ public class StudentResponse {
     private String department;
     private String course;
     private StudentStatus status;
-    private EnrollmentStatus enrollmentStatus;
 
     // Newly added
     private String photoUrl;
-    private String qrUrl;
+
 }

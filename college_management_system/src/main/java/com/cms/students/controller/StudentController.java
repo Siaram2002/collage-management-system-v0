@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.databind.ObjectMapper;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,6 +58,40 @@ public class StudentController {
                     .body(ApiResponse.fail("Failed to create student"));
         }
     }
+    
+    @PostMapping(value = "/with-photo", consumes = "multipart/form-data")
+    public ResponseEntity<ApiResponse> createStudentWithPhoto(
+            @RequestPart("student") String studentJson,
+            @RequestPart(value = "photo", required = false) MultipartFile photo) {
+
+        log.info("API: Creating student with photo");
+
+        try {
+            // Convert JSON string → Student object
+            ObjectMapper mapper = new ObjectMapper();
+            Student student = mapper.readValue(studentJson, Student.class);
+
+            // Call service
+            Student saved = studentService.createStudentWithPhoto(student, photo);
+
+            // Convert to DTO
+            StudentProfileDTO dto = studentMapper.toProfileDTO(saved);
+
+            return ResponseEntity.status(HttpStatus.CREATED)
+                    .body(ApiResponse.success("Student created successfully", dto));
+
+        } catch (DuplicateStudentException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(ApiResponse.fail(e.getMessage()));
+
+        } catch (Exception e) {
+            log.error("Error creating student with photo", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.fail("Failed to create student"));
+        }
+    }
+
+
 
     // ---------------------------------------------------------
     // GET STUDENT BY ID

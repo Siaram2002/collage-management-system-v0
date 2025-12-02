@@ -1,224 +1,336 @@
 package com.cms.transport.driver.serviceImp;
 
-
-import  com.cms.common.repositories.UserRepository;
-import com.cms.college.reporitories.AddressRepository;
-import com.cms.college.reporitories.ContactRepository;
-import com.cms.common.repositories.RoleRepository;
-import com.cms.common.exceptions.ResourceNotFoundException;
-import com.cms.transport.driver.dto.DriverRegisterRequest;
+import com.cms.transport.driver.config.DriverImageConfig;
+import com.cms.transport.driver.dto.ScanResultDTO;
 import com.cms.transport.driver.enums.DriverStatus;
 import com.cms.transport.driver.model.Driver;
 import com.cms.transport.driver.repository.DriverRepository;
 import com.cms.transport.driver.service.DriverService;
-import com.cms.college.models.User;
-import com.cms.college.models.Role;
-import com.cms.college.models.Contact;
-import com.cms.college.models.Address;
 
-import com.cms.common.enums.Status;
+import com.cms.college.models.Address;
+import com.cms.college.models.Contact;
+import com.cms.college.models.User;
+import com.cms.college.reporitories.AddressRepository;
+import com.cms.college.reporitories.ContactRepository;
+import com.cms.common.CommonUserService;
+import com.cms.common.exceptions.ResourceNotFoundException;
+import com.cms.common.repositories.UserRepository;
+import com.cms.qr.QRUtils;
+import com.cms.students.models.Student;
+import com.cms.students.services.StudentService;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.List;
 
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class DriverServiceImpl implements DriverService {
 
-    private final DriverRepository driverRepository;
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final ContactRepository contactRepository;
-    private final AddressRepository addressRepository;
-    private final BCryptPasswordEncoder passwordEncoder;
+	private final DriverRepository driverRepository;
+	private final ContactRepository contactRepository;
+	private final AddressRepository addressRepository;
 
-    @Override
-    @Transactional
-    public Map<String, Object> registerDriver(DriverRegisterRequest req) {
+	private final CommonUserService commonUserService;
+	private final DriverImageService driverImageService;
 
-        Map<String, Object> response = new HashMap<>();
+	private final StudentService studentService;
+	private final QRUtils qrUtil;
 
-        if (req.getRole() == null || !req.getRole().equalsIgnoreCase("DRIVER"))
-            throw new IllegalArgumentException("Role must be DRIVER for this registration");
+	@Override
+	@Transactional
+	public Driver createDriverWithPhoto(Driver driver, MultipartFile photo) throws IOException {
 
-        if (req.getLicenseNumber() == null || req.getLicenseExpiryDate() == null)
-            throw new IllegalArgumentException("License number and expiry date are required");
+		log.info("Creating new driver with photo...");
 
-        Optional<Driver> existingDriverOpt = driverRepository.findByLicenseNumber(req.getLicenseNumber());
-        if (existingDriverOpt.isPresent()) {
+		// -------------------------------------------------------------------------
+		// 1. Basic null checks and validations
+		// -------------------------------------------------------------------------
+		if (driver == null) {
+			log.error("Driver object is null");
+			throw new IllegalArgumentException("Driver object cannot be null");
+		}
 
-            Driver existingDriver = existingDriverOpt.get();
-            User existingUser = existingDriver.getUserAccount();
+		if (isBlank(driver.getFullName())) {
+			throw new IllegalArgumentException("Driver full name is required");
+		}
 
-            response.put("status", "EXISTING");
-            response.put("message", "Driver already registered");
-            Map<String, Object> data = new HashMap<>();
-            data.put("driverId", existingDriver.getDriverId());
-            data.put("fullName", existingDriver.getFullName());
-            data.put("username", existingUser.getUsername());
-            data.put("status", existingDriver.getStatus().name());
-            data.put("photoUrl", existingDriver.getPhotoUrl());
-            response.put("data", data);
-            return response;
-        }
+		if (isBlank(driver.getLicenseNumber())) {
+			throw new IllegalArgumentException("License number is required");
+		}
 
-        Contact contact = Contact.builder()
-                .phone(req.getContact().getPhone())
-                .email(req.getContact().getEmail())
-                .altPhone(req.getContact().getAltPhone())
-                .build();
-        contact = contactRepository.save(contact);
+		if (driver.getLicenseExpiryDate() == null) {
+			throw new IllegalArgumentException("License expiry date is required");
+		}
 
-        Address address = new Address();
-        address.setLine1(req.getAddress().getLine1());
-        address.setLine2(req.getAddress().getLine2());
-        address.setDistrict(req.getAddress().getDistrict());
-        address.setCity(req.getAddress().getCity());
-        address.setState(req.getAddress().getState());
-        address.setCountry(req.getAddress().getCountry());
-        address.setPin(req.getAddress().getPin());
-        address = addressRepository.save(address);
+		if (driver.getContact() == null || isBlank(driver.getContact().getPhone())) {
+			throw new IllegalArgumentException("Contact with phone number is required");
+		}
 
-        String baseName = req.getFullName().toLowerCase().replaceAll("\\s+", "");
-        String username = baseName + (int)(Math.random() * 9000 + 1000);
-        while (userRepository.existsByUsername(username)) {
-            username = baseName + (int)(Math.random() * 9000 + 1000);
-        }
+		if (driverRepository.existsByLicenseNumber(driver.getLicenseNumber())) {
+			log.warn("Duplicate license number found: {}", driver.getLicenseNumber());
+			throw new IllegalStateException("Driver with same license number already exists");
+		}
 
-        String firstThree = baseName.substring(0, Math.min(3, baseName.length()));
-        String last4 = contact.getPhone().substring(contact.getPhone().length() - 4);
-        String tempPassword = firstThree + "@" + last4;
-        String encryptedPassword = passwordEncoder.encode(tempPassword);
+		// -------------------------------------------------------------------------
+		// 2. Save contact (and address if exists)
+		// -------------------------------------------------------------------------
+		Contact contact = driver.getContact();
+		if (contact.getAddress() != null && contact.getAddress().getId() == null) {
+			contact.setAddress(addressRepository.save(contact.getAddress()));
+		}
+		if (contact.getId() == null) {
+			contact = contactRepository.save(contact);
+		}
+		driver.setContact(contact);
 
-        Driver driver = new Driver();
-        driver.setFullName(req.getFullName());
-        driver.setLicenseNumber(req.getLicenseNumber());
-        driver.setLicenseExpiryDate(req.getLicenseExpiryDate());
-        driver.setContact(contact);
-        driver.setAddress(address);
-        driver.setPhotoUrl(req.getPhotoUrl());
-        driver.setStatus(req.getLicenseExpiryDate().isBefore(LocalDate.now()) ? DriverStatus.SUSPENDED : DriverStatus.ACTIVE);
-        driver = driverRepository.save(driver);
+		// -------------------------------------------------------------------------
+		// 3. Set default status if not provided
+		// -------------------------------------------------------------------------
+		if (driver.getStatus() == null) {
+			driver.setStatus(DriverStatus.INACTIVE);
+		}
 
-        User user = new User();
-        user.setUsername(username);
-        user.setPassword(encryptedPassword);
-        user.setContact(contact);
-        user.setReferenceId(driver.getDriverId());
-        Role roleEntity = roleRepository.findByRoleName("DRIVER")
-                .orElseThrow(() -> new ResourceNotFoundException("Role DRIVER not configured"));
-        user.getRoles().add(roleEntity);
-        user.setStatus(req.getLicenseExpiryDate().isBefore(LocalDate.now()) ? Status.INACTIVE : Status.ACTIVE);
-        user = userRepository.save(user);
+		// -------------------------------------------------------------------------
+		// 4. Save driver first to get driverId
+		// -------------------------------------------------------------------------
+		Driver savedDriver = driverRepository.save(driver);
 
-        driver.setUserAccount(user);
-        driverRepository.save(driver);
+		// -------------------------------------------------------------------------
+		// 5. Handle photo upload using DriverImageService
+		// -------------------------------------------------------------------------
+		if (photo != null && !photo.isEmpty()) {
+			String photoUrl = driverImageService.storePhoto(savedDriver.getDriverId(), photo);
+			savedDriver.setPhotoUrl(photoUrl);
+			savedDriver = driverRepository.save(savedDriver);
+		}
 
-        response.put("status", "SUCCESS");
-        response.put("message", "Driver registered successfully");
-        Map<String, Object> data = new HashMap<>();
-        data.put("driverId", driver.getDriverId());
-        data.put("username", username);
-        data.put("tempPassword", tempPassword);
-        data.put("status", driver.getStatus().name());
-        data.put("photoUrl", driver.getPhotoUrl());
-        response.put("data", data);
+		// -------------------------------------------------------------------------
+		// 6. Create system user account for driver
+		// -------------------------------------------------------------------------
+		User user = commonUserService.createUser(savedDriver.getLicenseNumber(), "DRIVER", savedDriver.getDriverId(), // referenceId
+				contact.getPhone(), contact);
+		savedDriver.setUserAccount(user);
 
-        return response;
-    }
+		savedDriver = driverRepository.save(savedDriver);
+
+		log.info("Driver created successfully with ID: {} and User ID: {}", savedDriver.getDriverId(),
+				user.getUserId());
+		return savedDriver;
+	}
+
+	@Override
+	@Transactional
+	public Driver updateDriverPhoto(Long driverId, MultipartFile photo) throws IOException {
+
+		log.info("Updating driver photo for driverId: {}", driverId);
+
+		// 1. Fetch driver
+		Driver driver = driverRepository.findById(driverId)
+				.orElseThrow(() -> new ResourceNotFoundException("Driver not found with ID: " + driverId));
+
+		if (photo == null || photo.isEmpty()) {
+			throw new IllegalArgumentException("No photo provided for update");
+		}
+
+		// 2. Delegate photo update to DriverImageService
+		String updatedPhotoUrl = driverImageService.updatePhoto(driver.getPhotoUrl(), driver.getDriverId(), photo);
+
+		// 3. Update driver entity
+		driver.setPhotoUrl(updatedPhotoUrl);
+		Driver updatedDriver = driverRepository.save(driver);
+
+		log.info("Driver photo updated successfully for driverId: {}", driverId);
+		return updatedDriver;
+	}
+
+	// QR Scanning Results
+
+	@Override
+	public ScanResultDTO driverScanResult(String qrData) throws Exception {
+	    log.info("Processing QR scan data");
+
+	    // ---------------------------
+	    // 1. Validate QR Input
+	    // ---------------------------
+	    if (qrData == null || qrData.trim().isEmpty()) {
+	        log.error("QR Data is empty or null");
+	        throw new IllegalArgumentException("Invalid QR data received");
+	    }
+
+	    String decrypted;
+	    String studentRollNumber;
+
+	    try {
+	        decrypted = qrUtil.decryptAES(qrData);
+	        studentRollNumber = getRightSideData(decrypted);
+
+	    } catch (Exception e) {
+	        log.error("Failed to decrypt QR data", e);
+	        throw new RuntimeException("QR decryption failed, invalid or tampered QR code");
+	    }
+
+	    log.info("Extracted Roll Number from QR: {}", studentRollNumber);
+
+	    // ---------------------------
+	    // 2. Fetch Student
+	    // ---------------------------
+	    Student student;
+	    try {
+	        student = studentService.getByRollNumber(studentRollNumber);
+	        if (student == null) {
+	            throw new ResourceNotFoundException("No student found for roll number: " + studentRollNumber);
+	        }
+	    } catch (ResourceNotFoundException rnfe) {
+	        log.warn("Student not found: {}", studentRollNumber);
+	        throw rnfe;
+	    } catch (Exception e) {
+	        log.error("Unexpected error while fetching student {}", studentRollNumber, e);
+	        throw new RuntimeException("Failed to fetch student details");
+	    }
+
+	    // ---------------------------
+	    // 3. Map to DTO
+	    // ---------------------------
+	    ScanResultDTO dto = new ScanResultDTO();
+	    try {
+	        dto.setFirstName(student.getFirstName());
+	        dto.setMiddleName(student.getMiddleName());
+	        dto.setLastName(student.getLastName());
+
+	        dto.setRollNumber(student.getRollNumber());
+	        dto.setAdmissionNumber(student.getAdmissionNumber());
+	        dto.setAdmissionYear(student.getAdmissionYear());
+
+	        dto.setDepartment(student.getDepartment().getShortCode());
+	        dto.setCourse(student.getCourse().getCourseCode());
+
+	        dto.setStatus(student.getStatus());
+
+	        dto.setPhotoUrl(student.getPhotoUrl());
+
+	        // TODO: replace with actual logic
+	        dto.setFeePaid(true);
+
+	    } catch (Exception e) {
+	        log.error("Failed to map student to ScanResultDTO", e);
+	        throw new RuntimeException("Error mapping student data");
+	    }
+
+	    log.info("QR Scan processed successfully for {}", studentRollNumber);
+	    return dto;
+	}
 
 
-    // -------------------- Bulk Upload Excel ---------------------
-    @Override
-    @Transactional
-    public Map<String, Object> bulkUploadDriversExcel(MultipartFile file) {
+	private String getRightSideData(String input) {
+		if (input == null || !input.contains("-")) {
+			return input; // or return null based on your need
+		}
+		return input.substring(input.indexOf("-") + 1);
+	}
 
-        Map<String, Object> response = new HashMap<>();
-        List<Map<String, Object>> successList = new ArrayList<>();
-        List<Map<String, Object>> errorList = new ArrayList<>();
+	// Helper method to get file extension
+	private String getExtension(String originalFileName) {
+		if (originalFileName == null)
+			return "";
+		int dotIndex = originalFileName.lastIndexOf(".");
+		return (dotIndex == -1) ? "" : originalFileName.substring(dotIndex);
+	}
 
-        try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
-            Sheet sheet = workbook.getSheetAt(0);
-            boolean header = true;
+	// Helper method
+	private boolean isBlank(String value) {
+		return value == null || value.trim().isEmpty();
+	}
 
-            for (Row row : sheet) {
-                if (header) { header = false; continue; }
+	@Override
+	public Driver updateDriver(Long driverId, Driver updatedDriver) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-                try {
-                    // --- Handle License Expiry as date or string ---
-                    Cell expiryCell = row.getCell(2);
-                    LocalDate expiryDate;
-                    if (expiryCell.getCellType() == CellType.NUMERIC) {
-                        expiryDate = expiryCell.getLocalDateTimeCellValue().toLocalDate();
-                    } else {
-                        expiryDate = LocalDate.parse(expiryCell.getStringCellValue());
-                    }
+	@Override
+	public Driver getDriverById(Long driverId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-                    DriverRegisterRequest req = DriverRegisterRequest.builder()
-                            .role("DRIVER")
-                            .fullName(getStringCell(row.getCell(0)))
-                            .licenseNumber(getStringCell(row.getCell(1)))
-                            .licenseExpiryDate(expiryDate)
-                            .contact(new com.cms.transport.dto.ContactDTO(
-                                    getStringCell(row.getCell(3)),
-                                    getStringCell(row.getCell(4)),
-                                    getStringCell(row.getCell(5))
-                            ))
-                            .address(new com.cms.transport.dto.AddressDTO(
-                                    getStringCell(row.getCell(6)),
-                                    getStringCell(row.getCell(7)),
-                                    getStringCell(row.getCell(8)),
-                                    getStringCell(row.getCell(9)),
-                                    getStringCell(row.getCell(10)),
-                                    getStringCell(row.getCell(11)),
-                                    getStringCell(row.getCell(12))
-                            ))
-                            .photoUrl(getStringCell(row.getCell(13)))
-                            .build();
+	@Override
+	public void deleteDriver(Long driverId) {
+		// TODO Auto-generated method stub
 
-                    Map<String, Object> result = registerDriver(req);
-                    successList.add(result);
+	}
 
-                } catch (Exception e) {
-                    Map<String, Object> err = new HashMap<>();
-                    err.put("rowNumber", row.getRowNum());
-                    err.put("error", e.getMessage());
-                    errorList.add(err);
-                }
-            }
+	@Override
+	public List<Driver> getAllDrivers() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-            response.put("successCount", successList.size());
-            response.put("errorCount", errorList.size());
-            response.put("success", successList);
-            response.put("errors", errorList);
+	@Override
+	public List<Driver> searchDrivers(String keyword) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-        } catch (Exception e) {
-            response.put("status", "FAILED");
-            response.put("message", e.getMessage());
-        }
+	@Override
+	public Driver updateStatus(Long driverId, String status) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-        return response;
-    }
+	@Override
+	public Driver updateLicenseDetails(Long driverId, String licenseNumber, LocalDate expiry) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public Driver updatePhoto(Long driverId, MultipartFile photo) throws Exception {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public Driver assignContact(Long driverId, Long contactId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
-    // -------------------- Bulk Upload Excel ---------------------
+	@Override
+	public Driver assignAddress(Long driverId, Long addressId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public Driver assignUser(Long driverId, Long userId) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public List<Driver> getDriversWithExpiredLicense() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
+	@Override
+	public void deleteAllDrivers() {
+		// TODO Auto-generated method stub
 
+	}
 
-    // -------------------- Helper ---------------------
-    private String getStringCell(Cell cell) {
-        return cell == null ? "" : cell.toString().trim();
-    }
 }
-

@@ -43,9 +43,7 @@ public class Driver {
     @JoinColumn(name = "contact_id")
     private Contact contact;
 
-    @OneToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "address_id")
-    private Address address;
+
 
     @Column(length = 512)
     private String photoUrl;
