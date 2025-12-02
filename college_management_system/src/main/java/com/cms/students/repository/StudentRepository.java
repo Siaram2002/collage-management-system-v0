@@ -7,6 +7,8 @@ import com.cms.students.models.Student;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -54,4 +56,33 @@ public interface StudentRepository extends JpaRepository<Student, Long> {
             StudentStatus status,
             Pageable pageable
     );
+    
+    
+    
+    // -------------------------------
+    // DYNAMIC SEARCH + FILTER + KEYWORD
+    // -------------------------------
+    @Query("""
+        SELECT s FROM Student s
+        WHERE 
+            (:departmentId IS NULL OR s.department.departmentId = :departmentId)
+        AND (:courseId IS NULL OR s.course.courseId = :courseId)
+        AND (:status IS NULL OR s.status = :status)
+        AND (
+               :keyword IS NULL 
+               OR LOWER(s.firstName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(s.lastName) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(s.rollNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))
+               OR LOWER(s.admissionNumber) LIKE LOWER(CONCAT('%', :keyword, '%'))
+        )
+    """)
+    Page<Student> searchStudents(
+            @Param("departmentId") Long departmentId,
+            @Param("courseId") Long courseId,
+            @Param("status") StudentStatus status,
+            @Param("keyword") String keyword,
+            Pageable pageable
+    );
+    
+    
 }

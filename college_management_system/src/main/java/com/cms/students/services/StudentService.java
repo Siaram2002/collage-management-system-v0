@@ -26,7 +26,7 @@ public interface StudentService {
 
     // Photo upload
     String uploadStudentPhoto(Long studentId, MultipartFile imageFile);
-    void uploadPhotosBulkAsync(Map<Long, byte[]> studentPhotoMap);
+
 
     // Bulk CSV
     void uploadStudentsBulk(MultipartFile file, String imageFolderPath) throws IOException;

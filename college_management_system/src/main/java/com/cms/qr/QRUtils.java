@@ -53,7 +53,7 @@ public class QRUtils {
 
             QRCodeWriter qrCodeWriter = new QRCodeWriter();
             BitMatrix bitMatrix =
-                    qrCodeWriter.encode(encrypted, BarcodeFormat.QR_CODE, width, height);
+                    qrCodeWriter.encode(entityData, BarcodeFormat.QR_CODE, width, height);
 
             try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
                 MatrixToImageWriter.writeToStream(bitMatrix, "PNG", baos);

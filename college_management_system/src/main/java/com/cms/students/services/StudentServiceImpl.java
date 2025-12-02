@@ -10,7 +10,6 @@ import com.cms.students.repository.StudentRepository;
 import com.cms.students.services.media.PhotoStorageService;
 import com.cms.students.services.media.QRFileStorageService;
 import com.cms.students.utils.StudentCsvParser;
-
 import com.cms.college.models.Course;
 import com.cms.college.models.Department;
 import com.cms.college.models.User;
@@ -23,7 +22,6 @@ import com.cms.qr.service.QRService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mock.web.MockMultipartFile;
@@ -64,15 +62,17 @@ public class StudentServiceImpl implements StudentService {
         validateStudentUnique(student);
 
         Student saved = studentRepository.save(student);
-        log.debug("Student saved with ID={}", saved.getStudentId());
 
+        // Create linked user
         User user = commonUserService.createUser(saved.getRollNumber(), "STUDENT", saved.getStudentId(),
-                "stud@123", null);
-        user.setContact(saved.getContact());
+                "stud@123", saved.getContact());
         saved.setUser(user);
+
         studentRepository.save(saved);
 
+        // Async QR generation
         generateQrAsync(saved);
+
         log.info("Student created successfully: {}", saved.getRollNumber());
         return saved;
     }
@@ -126,7 +126,6 @@ public class StudentServiceImpl implements StudentService {
         existing.setRollNumber(updated.getRollNumber());
         existing.setStatus(updated.getStatus());
         existing.setEnrollmentStatus(updated.getEnrollmentStatus());
-
         if (updated.getContact() != null) existing.setContact(updated.getContact());
     }
 
@@ -135,39 +134,60 @@ public class StudentServiceImpl implements StudentService {
     @Transactional
     public void deleteStudent(Long studentId) {
         Student student = findStudentOrThrow(studentId);
-        deleteStudentQr(student);
-        deleteStudentPhoto(student);
+
+        try {
+            deleteStudentQr(student);
+        } catch (Exception e) {
+            log.warn("Failed to delete QR for student {}: {}", student.getRollNumber(), e.getMessage());
+        }
+
+        try {
+            deleteStudentPhoto(student);
+        } catch (Exception e) {
+            log.warn("Failed to delete photo for student {}: {}", student.getRollNumber(), e.getMessage());
+        }
+
         studentRepository.delete(student);
         log.info("Student deleted successfully: {}", student.getRollNumber());
+    }
+
+    @Transactional
+    public boolean deleteAllStudents() {
+        try {
+            // Delete all students
+            studentRepository.deleteAll();
+            studentRepository.flush();
+            log.info("All students deleted successfully.");
+            return true;
+        } catch (Exception e) {
+            log.error("Failed to delete all students.", e);
+            return false;
+        }
     }
 
     // ------------------- STATUS -------------------
     @Override
     @Transactional
     public Student updateStudentStatus(Long studentId, StudentStatus status) {
-        // Fetch student or throw exception if not found
         Student student = findStudentOrThrow(studentId);
-
-        // Update student status
         student.setStatus(status);
 
-        // Update linked User status if exists
         if (student.getUser() != null) {
-            // Map StudentStatus to User Status
-            switch (status) {
-                case ACTIVE -> student.getUser().setStatus(Status.ACTIVE);
-                case INACTIVE -> student.getUser().setStatus(Status.INACTIVE);
-                case SUSPENDED -> student.getUser().setStatus(Status.SUSPENDED);
-                case ON_LEAVE -> student.getUser().setStatus(Status.ON_LEAVE);
-                case EXPELLED -> student.getUser().setStatus(Status.INACTIVE); // Optional mapping for expelled
-            }
+            student.getUser().setStatus(mapStudentStatusToUserStatus(status));
         }
 
-        // Save student (cascades to user due to cascade = ALL)
         return studentRepository.save(student);
     }
 
-
+    private Status mapStudentStatusToUserStatus(StudentStatus status) {
+        return switch (status) {
+            case ACTIVE -> Status.ACTIVE;
+            case INACTIVE -> Status.INACTIVE;
+            case SUSPENDED -> Status.SUSPENDED;
+            case ON_LEAVE -> Status.ON_LEAVE;
+            case EXPELLED -> Status.INACTIVE;
+        };
+    }
 
     @Override
     @Transactional
@@ -181,7 +201,9 @@ public class StudentServiceImpl implements StudentService {
     @Transactional
     public Student activateStudentUser(Long studentId) {
         Student student = findStudentOrThrow(studentId);
-        if (student.getUser() == null) throw new IllegalStateException("User missing for student: " + student.getRollNumber());
+        if (student.getUser() == null)
+            throw new IllegalStateException("User missing for student: " + student.getRollNumber());
+
         student.getUser().setStatus(Status.ACTIVE);
         userRepository.save(student.getUser());
         log.info("User activated for student: {}", student.getRollNumber());
@@ -284,26 +306,25 @@ public class StudentServiceImpl implements StudentService {
         return photoStorageService.deleteStudentPhoto(student.getRollNumber());
     }
 
-    @Async("photoExecutor")
-    public void uploadPhotosBulkAsync(Map<Long, byte[]> studentPhotoMap) {
-        List<Student> students = studentRepository.findAllById(studentPhotoMap.keySet());
-        Map<Long, Student> studentMap = students.stream().collect(Collectors.toMap(Student::getStudentId, s -> s));
-
-        studentPhotoMap.forEach((id, bytes) -> {
-            Student student = studentMap.get(id);
-            if (student != null) {
-            	try {
-            	    String url = photoStorageService.storeStudentPhoto(student.getRollNumber(), bytes);
-            	    student.setPhotoUrl(url);
-            	    studentRepository.save(student);
-            	    log.info("Bulk photo saved for student: {}", student.getRollNumber());
-            	} catch (IOException ex) {
-            	    log.error("Failed saving bulk photo for student ID={}", id, ex);
-            	}
-
-            }
-        });
-    }
+//    @Async("photoExecutor")
+//    public void uploadPhotosBulkAsync(Map<Long, byte[]> studentPhotoMap) {
+//        List<Student> students = studentRepository.findAllById(studentPhotoMap.keySet());
+//        Map<Long, Student> studentMap = students.stream().collect(Collectors.toMap(Student::getStudentId, s -> s));
+//
+//        studentPhotoMap.forEach((id, bytes) -> {
+//            Student student = studentMap.get(id);
+//            if (student != null) {
+//                try {
+//                    String url = photoStorageService.storeStudentPhoto(student.getRollNumber(), bytes);
+//                    student.setPhotoUrl(url);
+//                    studentRepository.save(student);
+//                    log.info("Bulk photo saved for student: {}", student.getRollNumber());
+//                } catch (IOException ex) {
+//                    log.error("Failed saving bulk photo for student ID={}", id, ex);
+//                }
+//            }
+//        });
+//    }
 
     // ------------------- BULK CSV -------------------
     @Transactional
@@ -314,7 +335,21 @@ public class StudentServiceImpl implements StudentService {
                 .collect(Collectors.toMap(Course::getCourseCode, c -> c));
 
         List<Student> students = StudentCsvParser.parseStudents(file.getInputStream(), departmentMap, courseMap);
-        List<Student> savedStudents = studentRepository.saveAll(students);
+
+        Set<String> existingRollNumbers = studentRepository.findAll().stream()
+                .map(Student::getRollNumber)
+                .collect(Collectors.toSet());
+
+        List<Student> newStudents = students.stream()
+                .filter(s -> !existingRollNumbers.contains(s.getRollNumber()))
+                .collect(Collectors.toList());
+
+        if (newStudents.isEmpty()) {
+            log.info("No new students to upload. All students already exist.");
+            return;
+        }
+
+        List<Student> savedStudents = studentRepository.saveAll(newStudents);
         log.info("Bulk upload completed: {} students saved", savedStudents.size());
 
         Map<Long, byte[]> photoMap = new HashMap<>();
@@ -324,24 +359,19 @@ public class StudentServiceImpl implements StudentService {
             File jpeg = new File(imageFolderPath + File.separator + roll + ".jpeg");
             File png = new File(imageFolderPath + File.separator + roll + ".png");
             File photoFile = jpg.exists() ? jpg : (jpeg.exists() ? jpeg : (png.exists() ? png : null));
-
-            if (photoFile != null) {
-                photoMap.put(s.getStudentId(), Files.readAllBytes(photoFile.toPath()));
-            }
+            if (photoFile != null) photoMap.put(s.getStudentId(), Files.readAllBytes(photoFile.toPath()));
         }
 
-        savedStudents.forEach(student -> studentBulkExecutor
-                .execute(() -> processStudentBulkAsync(student, photoMap.get(student.getStudentId()))));
+        savedStudents.forEach(student -> studentBulkExecutor.execute(() ->
+                processStudentBulkAsync(student, photoMap.get(student.getStudentId()))));
     }
 
     private void processStudentBulkAsync(Student student, byte[] photoBytes) {
         try {
-            User user = commonUserService.createUser(student.getRollNumber(), "STUDENT", student.getStudentId(),
-                    "stud@123", null);
-            user.setContact(student.getContact());
+            User user = commonUserService.createUser(student.getRollNumber(), "STUDENT",
+                    student.getStudentId(), "stud@123", student.getContact());
             student.setUser(user);
             studentRepository.save(student);
-            
 
             generateQrAsync(student);
 
