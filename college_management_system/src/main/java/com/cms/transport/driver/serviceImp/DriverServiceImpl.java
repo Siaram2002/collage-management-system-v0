@@ -333,4 +333,69 @@ public class DriverServiceImpl implements DriverService {
 
 	}
 
+
+	@Override
+	@Transactional
+	public Driver createDriver(Driver driver) {
+
+		log.info("Creating new driver WITHOUT photo...");
+
+		if (driver == null) {
+			throw new IllegalArgumentException("Driver object cannot be null");
+		}
+
+		if (isBlank(driver.getFullName())) {
+			throw new IllegalArgumentException("Full name is required");
+		}
+
+		if (isBlank(driver.getLicenseNumber())) {
+			throw new IllegalArgumentException("License number is required");
+		}
+
+		if (driver.getLicenseExpiryDate() == null) {
+			throw new IllegalArgumentException("License expiry date is required");
+		}
+
+		if (driver.getContact() == null || isBlank(driver.getContact().getPhone())) {
+			throw new IllegalArgumentException("Contact phone number is required");
+		}
+
+		if (driverRepository.existsByLicenseNumber(driver.getLicenseNumber())) {
+			throw new IllegalStateException("Driver with the same license number already exists");
+		}
+
+		// Save contact + address
+		Contact contact = driver.getContact();
+
+		if (contact.getAddress() != null && contact.getAddress().getId() == null) {
+			contact.setAddress(addressRepository.save(contact.getAddress()));
+		}
+
+		if (contact.getId() == null) {
+			contact = contactRepository.save(contact);
+		}
+
+		driver.setContact(contact);
+
+		// Default status
+		if (driver.getStatus() == null) {
+			driver.setStatus(DriverStatus.INACTIVE);
+		}
+
+		// Save Driver
+		Driver saved = driverRepository.save(driver);
+
+		// Create user account for driver
+		User user = commonUserService.createUser(
+				saved.getLicenseNumber(), "DRIVER",
+				saved.getDriverId(),
+				contact.getPhone(),
+				contact
+		);
+
+		saved.setUserAccount(user);
+
+		return driverRepository.save(saved);
+	}
+
 }

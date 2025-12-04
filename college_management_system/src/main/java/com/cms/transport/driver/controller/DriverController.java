@@ -93,6 +93,22 @@ public class DriverController {
                     .body(ApiResponse.fail("Failed to process QR code"));
         }
     }
-    
-    
+
+    @PostMapping(value = "/add", consumes = "application/json")
+    public ResponseEntity<?> addDriver(@RequestBody Driver driver) {
+
+        try {
+            Driver created = driverService.createDriver(driver);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+
+        } catch (IllegalArgumentException ex) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "message", ex.getMessage()));
+
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Something went wrong: " + ex.getMessage()));
+        }
+    }
+
 }

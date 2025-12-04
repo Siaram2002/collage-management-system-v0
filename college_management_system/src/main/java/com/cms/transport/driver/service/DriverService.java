@@ -42,4 +42,8 @@ public interface DriverService {
 
     void deleteAllDrivers();
 	ScanResultDTO driverScanResult(String qrData) throws Exception;
+
+    Driver createDriver(Driver driver);
+
+
 }

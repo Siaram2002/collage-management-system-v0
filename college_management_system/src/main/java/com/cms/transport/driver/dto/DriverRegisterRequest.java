@@ -2,9 +2,6 @@ package com.cms.transport.driver.dto;
 import lombok.*;
 import java.time.LocalDate;
 
-import com.cms.transport.dto.AddressDTO;
-import com.cms.transport.dto.ContactDTO;
-
 // DTO for incoming Driver registration request
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class DriverRegisterRequest {
