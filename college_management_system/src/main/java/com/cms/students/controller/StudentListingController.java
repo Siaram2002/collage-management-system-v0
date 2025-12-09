@@ -1,10 +1,11 @@
 package com.cms.students.controller;
 
 import com.cms.common.ApiResponse;
+
 import com.cms.students.dto.StudentFilterRequest;
 import com.cms.students.dto.StudentProfileDTO;
-import com.cms.students.mappers.StudentMapper;
 
+import com.cms.students.mappers.StudentToProfileMapper;
 import com.cms.students.services.StudentListingService;
 
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class StudentListingController {
 
     private final StudentListingService studentListingService;
-    private final StudentMapper studentMapper;
+    private final StudentToProfileMapper studentMapper;
 
     // ----------------------------------------------------------------
     // 1. SEARCH STUDENTS (POST)

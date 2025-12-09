@@ -61,6 +61,9 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
 
     List<Driver> findAllByOrderByCreatedAtDesc();
     List<Driver> findAllByOrderByFullNameAsc();
+    
+    List<Driver> findByFullNameContainingIgnoreCaseOrLicenseNumberContainingIgnoreCase(String name, String license);
+
 
 
     /**

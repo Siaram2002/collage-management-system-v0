@@ -1,8 +1,9 @@
 package com.cms.students.services;
 
 import com.cms.students.dto.StudentFilterRequest;
+
 import com.cms.students.dto.StudentProfileDTO;
-import com.cms.students.mappers.StudentMapper;
+import com.cms.students.mappers.StudentToProfileMapper;
 import com.cms.students.models.Student;
 import com.cms.students.repository.StudentRepository;
 
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class StudentListingService {
 
     private final StudentRepository studentRepository;
-    private final StudentMapper studentMapper;
+    private final StudentToProfileMapper studentMapper;
 
     public Page<StudentProfileDTO> getStudents(StudentFilterRequest filter) {
 

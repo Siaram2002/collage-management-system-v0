@@ -20,8 +20,7 @@ public interface BusRepository extends JpaRepository<Bus, Long> {
     boolean existsByGpsDevice_GpsId(Long gpsId);
     Optional<Bus> findByRegistrationNumber(String registrationNumber);
 
-    // Fixed nested property for Contact
-    List<Bus> findByContact_Id(Long contactId);
+
 
     List<Bus> findByBusNumberContainingIgnoreCase(String keyword);
     List<Bus> findAllByOrderByCreatedAtDesc();

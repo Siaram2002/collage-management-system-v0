@@ -1,54 +1,65 @@
 package com.cms.students.mappers;
 
-import com.cms.students.dto.StudentProfileDTO;
-import com.cms.students.models.Student;
-import org.springframework.stereotype.Component;
 
-@Component
+import com.cms.students.dto.StudentDTO;
+import com.cms.students.enums.EnrollmentStatus;
+import com.cms.students.enums.StudentStatus;
+import com.cms.students.models.Student;
+import com.cms.college.models.Contact;
+import com.cms.college.models.Department;
+import com.cms.college.models.Course;
+import com.cms.college.models.Address;
+
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class StudentMapper {
 
-    public StudentProfileDTO toProfileDTO(Student s) {
-        if (s == null) return null;
+    /**
+     * Convert StudentDTO → Student entity (with Contact + Address)
+     */
+    public static Student toStudent(StudentDTO dto, Department dept, Course course) {
 
-        return StudentProfileDTO.builder()
-                // Basic Info
-                .firstName(s.getFirstName())
-                .middleName(s.getMiddleName())
-                .lastName(s.getLastName())
-                .dob(s.getDob())
-                .gender(s.getGender())
-                .bloodGroup(s.getBloodGroup())
-                .category(s.getCategory())
-                .nationality(s.getNationality())
-                // Contact
-                .contactPhone(s.getContact() != null ? s.getContact().getPhone() : null)
-                .contactEmail(s.getContact() != null ? s.getContact().getEmail() : null)
-                .altPhone(s.getContact() != null ? s.getContact().getAltPhone() : null)
-                // Address
-                .addressLine1(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getLine1() : null)
-                .addressLine2(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getLine2() : null)
-                .city(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getCity() : null)
-                .district(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getDistrict() : null)
-                .state(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getState() : null)
-                .country(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getCountry() : null)
-                .pin(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getPin() : null)
-                .latitude(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getLatitude() : null)
-                .longitude(s.getContact() != null && s.getContact().getAddress() != null ? s.getContact().getAddress().getLongitude() : null)
-                // Department
-                .departmentName(s.getDepartment() != null ? s.getDepartment().getName() : null)
-                .departmentShortCode(s.getDepartment() != null ? s.getDepartment().getShortCode() : null)
-                // Course
-                .courseName(s.getCourse() != null ? s.getCourse().getName() : null)
-                .courseCode(s.getCourse() != null ? s.getCourse().getCourseCode() : null)
-                // Academic Info
-                .admissionYear(s.getAdmissionYear())
-                .admissionNumber(s.getAdmissionNumber())
-                .rollNumber(s.getRollNumber())
-                .status(s.getStatus())
-                .enrollmentStatus(s.getEnrollmentStatus())
-                // Media Info
-                .photoUrl(s.getPhotoUrl())
-                .qrUrl(s.getQrUrl())
+        // Build Address
+        Address address = Address.builder()
+                .line1(dto.getAddressLine1())
+                .line2(dto.getAddressLine2())
+                .city(dto.getCity())
+                .district(dto.getDistrict())
+                .state(dto.getState())
+                .country(dto.getCountry())
+                .pin(dto.getPin())
                 .build();
+
+        // Build Contact
+        Contact contact = Contact.builder()
+                .phone(dto.getPhone())
+                .email(dto.getEmail())
+                .altPhone(dto.getAltPhone())
+                .address(address)
+                .build();
+
+        // Build Student
+        return Student.builder()
+                .firstName(dto.getFirstName())
+                .middleName(dto.getMiddleName())
+                .lastName(dto.getLastName())
+                .dob(dto.getDob())
+                .gender(dto.getGender())
+                .contact(contact)
+                .department(dept)
+                .course(course)
+                .admissionYear(dto.getAdmissionYear())
+                .admissionNumber(dto.getAdmissionNumber())
+                .rollNumber(dto.getRollNumber())
+                .bloodGroup(dto.getBloodGroup())
+                .aadhaarNumber(dto.getAdhaarNumber())
+                .category(dto.getCategory())
+                .nationality(dto.getNationality())
+                .status(StudentStatus.ACTIVE)             // <--- set default
+                .enrollmentStatus(EnrollmentStatus.ENROLLED) // <--- set default
+                .build();
+
+
     }
 }

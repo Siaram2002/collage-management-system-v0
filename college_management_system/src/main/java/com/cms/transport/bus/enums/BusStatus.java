@@ -8,7 +8,8 @@ public enum BusStatus {
     ACTIVE("ACTIVE"),            // Bus is available and running
     IN_MAINTENANCE("IN_MAINTENANCE"), // Bus is under maintenance
     OUT_OF_SERVICE("OUT_OF_SERVICE"), // Bus is temporarily not operational
-    INACTIVE("INACTIVE");        // Bus is decommissioned or retired
+    INACTIVE("INACTIVE"),      // Bus is decommissioned or retired
+	IN_SERVICE("IN_SERVICE");
 
     private final String value;
 

@@ -21,9 +21,9 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "student", uniqueConstraints = { 
-        @UniqueConstraint(columnNames = { "rollNumber" }),
-        @UniqueConstraint(columnNames = { "admissionNumber" }) 
+@Table(name = "student", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"rollNumber"}),
+        @UniqueConstraint(columnNames = {"admissionNumber"})
 })
 public class Student {
 
@@ -49,9 +49,14 @@ public class Student {
     private LocalDate dob;
 
     @NotBlank(message = "Gender is required")
-    @Size(max = 10)
+    @Pattern(regexp = "Male|Female|Other", message = "Gender must be Male, Female, or Other")
     @Column(nullable = false, length = 10)
     private String gender;
+    
+    @Size(max = 12)
+    @Pattern(regexp = "^[0-9]{12}$", message = "Aadhaar number must be a 12-digit numeric value")
+    @Column(name = "aadhaar_number", unique = true, length = 12)
+    private String aadhaarNumber;
 
     @NotNull(message = "Contact is required")
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -59,12 +64,12 @@ public class Student {
     private Contact contact;
 
     @NotNull(message = "Department is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER) // Fetch EAGER for small lookup tables
     @JoinColumn(name = "department_id", nullable = false)
     private Department department;
 
     @NotNull(message = "Course is required")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "course_id", nullable = false)
     private Course course;
 
@@ -96,6 +101,8 @@ public class Student {
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private User user;
+    
+    
 
     @Size(max = 10)
     @Column(length = 10)
@@ -113,13 +120,13 @@ public class Student {
     @Column(length = 255)
     private String photoUrl;
 
-    @Size(max = 255)
-    @Column(length = 255)
-    private String qrUrl;
+
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+
 }

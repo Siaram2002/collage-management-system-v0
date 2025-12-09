@@ -9,9 +9,10 @@ import java.util.Optional;
 @Repository
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
     
-    // Find by department shortCode
-    Optional<Department> findByShortCode(String shortCode);
+    // Find department by its code
+    Optional<Department> findByDepartmentCode(String departmentCode);
     
-    // Check existence by shortCode
-    boolean existsByShortCode(String shortCode);
+    // Check existence by department code
+    boolean existsByDepartmentCode(String departmentCode); // ✅ must be "existsBy<Field>"
 }
+

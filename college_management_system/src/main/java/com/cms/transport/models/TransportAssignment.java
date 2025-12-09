@@ -1,80 +1,59 @@
 package com.cms.transport.models;
 
-import com.cms.common.enums.Status;
-import com.cms.transport.bus.models.Bus;
-import com.cms.transport.driver.model.Driver;
-import com.cms.transport.route.models.Route;
-
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.cms.transport.bus.models.Bus;
+import com.cms.transport.driver.model.Driver;
+import com.cms.transport.enums.TransportStatus;
+import com.cms.transport.route.models.Route;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(
-    name = "bus_assignments",
-    indexes = {
-        @Index(
-            name = "idx_bus_active_unique",
-            columnList = "bus_id, assignment_date, active_flag",
-            unique = true
-        ),
-        @Index(
-            name = "idx_driver_active_unique",
-            columnList = "driver_id, assignment_date, active_flag",
-            unique = true
-        )
-    }
-)
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Table(name = "transport_assignments")
+@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class TransportAssignment {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long assignmentId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "bus_id", nullable = false)
+    // -----------------------------
+    // ONE DRIVER ↔ ONE ASSIGNMENT
+    // -----------------------------
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "driver_id", unique = true, nullable = false)
+    @JsonIgnoreProperties({"assignment"})   // avoid recursion
+    private Driver driver;
+
+    // -----------------------------
+    // ONE BUS ↔ ONE ASSIGNMENT
+    // -----------------------------
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bus_id", unique = true, nullable = false)
+    @JsonBackReference(value = "bus-assignment")
     private Bus bus;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "driver_id", nullable = false)
-    private Driver driver;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "route_id", nullable = false)
+    @JsonBackReference(value = "route-assignment")
     private Route route;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "gps_id")
-    private GPSDevice gpsDevice;
 
-    @Column(nullable = false)
     private LocalDate assignmentDate;
 
     @Enumerated(EnumType.STRING)
-    private Status status = Status.ACTIVE;
-
-    private LocalDate endDate;
-
-    @Column(length = 255)
-    private String notes;
-
-    // ----------------------------
-    // GENERATED COLUMN (IMPORTANT)
-    // ----------------------------
-    @Column(name = "active_flag", insertable = false, updatable = false)
-    private Integer activeFlag;
+    private TransportStatus status = TransportStatus.ACTIVE;
 
     @CreationTimestamp
-    private LocalDateTime assignedAt;
+    private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;

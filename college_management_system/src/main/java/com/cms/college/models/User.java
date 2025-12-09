@@ -7,6 +7,7 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.cms.common.enums.RoleEnum;
 import com.cms.common.enums.Status;
 
 import java.time.LocalDateTime;
@@ -35,13 +36,10 @@ public class User {
     private String password;   // hashed password
 
     // Many-to-Many relationship with roles
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
+    private RoleEnum role;
+
 
     @Column(nullable = false)
     private Long referenceId;  // id of the actual entity (student_id, principal_id, etc.)

@@ -5,6 +5,8 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.cms.common.enums.Status;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -27,23 +29,21 @@ public class AdminMaster {
     @JoinColumn(name = "contact_id", nullable = false)
     private Contact contact;
 
+    // User is optional now
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id", nullable = true)
     private User user;
 
-    /** 
-     * Corrected: AdminMaster has ONE role
-     * Role is an ENTITY, so @ManyToOne is required
-     */
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "role_id", nullable = false)
-    private Role role;
+ 
 
     @Column(length = 255)
     private String photoUrl;
+    
+    
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status adminStatus = Status.ACTIVE;
 
-    @Column(length = 255)
-    private String qrUrl;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

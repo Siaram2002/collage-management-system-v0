@@ -21,11 +21,12 @@ public class StudentProfileDTO {
     private String firstName;
     private String middleName;
     private String lastName;
-    private LocalDate dob;
+    private String dob;
     private String gender;
     private String bloodGroup;
     private String category;
     private String nationality;
+    private String adhaarNumber;
 
     // ---------------- Contact Info ----------------
     private String contactPhone;
@@ -46,7 +47,7 @@ public class StudentProfileDTO {
     // ---------------- Department Info ----------------
    
     private String departmentName;
-    private String departmentShortCode;
+    private String departmentCode;
 
   
 
@@ -66,7 +67,7 @@ public class StudentProfileDTO {
 
     // ---------------- Media Info ----------------
     private String photoUrl;
-    private String qrUrl;
+
 
 
 }

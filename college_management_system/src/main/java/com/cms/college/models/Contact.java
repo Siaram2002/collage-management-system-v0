@@ -1,6 +1,7 @@
 package com.cms.college.models;
 
 import jakarta.persistence.*;
+
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;

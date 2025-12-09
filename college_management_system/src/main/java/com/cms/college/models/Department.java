@@ -32,8 +32,8 @@ public class Department {
     @Column(nullable = false, length = 150)
     private String name;
 
-    @Column(name = "short_code", nullable = false, length = 20)
-    private String shortCode;
+    @Column(name = "department_code", nullable = false, length = 20)
+    private String departmentCode;
 
     @Column(nullable = false)
     private Integer totalSeats;

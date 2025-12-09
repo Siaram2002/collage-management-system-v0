@@ -1,8 +1,10 @@
 package com.cms.transport.driver.service;
 
+
+import com.cms.busPass.BusPass;
 import com.cms.transport.driver.dto.ScanResultDTO;
 import com.cms.transport.driver.model.Driver;
-
+import com.cms.transport.driver.model.QRScanLog;
 
 import org.springframework.web.multipart.MultipartFile;
 
@@ -13,8 +15,8 @@ import java.util.List;
 public interface DriverService {
 
 
-    public Driver createDriverWithPhoto(Driver driver, MultipartFile photo) throws IOException;
-	public Driver updateDriverPhoto(Long driverId, MultipartFile photo) throws IOException ;
+    public Driver createDriver(Driver driver, MultipartFile photo) throws IOException;
+//	public Driver updateDriverPhoto(Long driverId, MultipartFile photo) throws IOException ;
 
     Driver updateDriver(Long driverId, Driver updatedDriver);
 
@@ -37,9 +39,18 @@ public interface DriverService {
     Driver assignAddress(Long driverId, Long addressId);
 
     Driver assignUser(Long driverId, Long userId);
+    
+    List<QRScanLog> getScanLogsByDriver(Long driverId);
+
 
     List<Driver> getDriversWithExpiredLicense();
 
     void deleteAllDrivers();
-	ScanResultDTO driverScanResult(String qrData) throws Exception;
+//	ScanResultDTO driverScanResult(String qrData) throws Exception;
+	BusPass driverScanResult(String qrData, Long driverId) throws Exception;
+//	Driver createDriverWithPhoto(DriverRegisterDTO dto, MultipartFile photo) throws IOException;
+
+	Driver updateDriverPhoto(Long driverId, MultipartFile photo) throws IOException;
+
+//	Driver createDriverWithPhoto(Driver driver, MultipartFile photo) throws IOException;
 }
