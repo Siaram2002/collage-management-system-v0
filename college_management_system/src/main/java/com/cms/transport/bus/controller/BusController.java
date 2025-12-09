@@ -87,6 +87,7 @@ public class BusController {
             log.error("Error fetching location for busId={}", busId, e); // log the error with stacktrace
             return ResponseEntity.badRequest().body(ApiResponse.fail(e.getMessage()));
         }
+        //hi
     }
     
     @GetMapping("/locations")
