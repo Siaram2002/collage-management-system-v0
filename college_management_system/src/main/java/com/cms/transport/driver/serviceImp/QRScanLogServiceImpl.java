@@ -6,6 +6,7 @@ import com.cms.transport.driver.repository.DriverRepository;
 
 import com.cms.transport.driver.repository.QRScanLogRepository;
 import com.cms.transport.driver.service.QRScanLogService;
+import com.cms.transport.models.TransportAssignment;
 import com.cms.students.services.StudentService;
 import com.cms.students.models.Student;
 import com.cms.transport.driver.model.Driver;
@@ -50,9 +51,13 @@ public class QRScanLogServiceImpl implements QRScanLogService {
         // 2️⃣ Fetch driver by ID
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new RuntimeException("Driver not found for ID: " + driverId));
+        
+       
 
         // 3️⃣ Get assignment (bus and route) if assigned
         var assignment = driver.getAssignment();
+        
+     //   log.info(assignment.toString());
 
         // 4️⃣ Create and save log entry
         QRScanLog logEntry = QRScanLog.builder()

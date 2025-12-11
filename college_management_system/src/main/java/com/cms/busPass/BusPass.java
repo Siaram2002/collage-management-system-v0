@@ -35,6 +35,8 @@ public class BusPass {
     private String studentName;
     private String course;
     private String department;
+    
+    private int routeId;
 
     // Student image URL
     @Column(length = 255)

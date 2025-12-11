@@ -22,4 +22,6 @@ public interface StudentBusPassRepository extends JpaRepository<StudentBusPass, 
     boolean existsByRollNumberAndAdmissionNumber(String rollNumber, String admissionNumber);
 
 	Optional<StudentBusPass> findByRollNumberOrAdmissionNumber(String rollNumber, String admissionNumber);
+
+	Optional<StudentBusPass> findByRollNumber(String rollNumber);
 }

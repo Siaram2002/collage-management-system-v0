@@ -88,4 +88,15 @@ public class BusPassController {
 
         return ResponseEntity.ok(dto);
     }
+    
+    @PatchMapping("/status/update")
+    public ResponseEntity<?> updateStatusByRollNumber(
+            @RequestParam String rollNumber,
+            @RequestParam BusPassStatus status) {
+
+        BusPass updated = busPassService.updateBusPassStatusByRollNumber(rollNumber, status);
+
+        return ResponseEntity.ok(updated);
+    }
+
 }

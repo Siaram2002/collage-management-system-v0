@@ -1,6 +1,7 @@
 package com.cms.transport.driver.controller;
 
 import com.cms.busPass.BusPass;
+
 import com.cms.common.ApiResponse;
 
 import com.cms.common.exceptions.ResourceNotFoundException;
@@ -81,7 +82,7 @@ public class DriverController {
     // -------------------------------------------------------------------------
     // Scan QR code
     // -------------------------------------------------------------------------
-    @PostMapping("/scanQr")
+    @GetMapping("/scanQr")
     public ResponseEntity<ApiResponse> scanQr(@RequestParam("driverId") Long driverId,
                                               @RequestParam("qrData") String qrData) {
 

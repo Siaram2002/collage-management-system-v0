@@ -53,9 +53,8 @@ public class Student {
     @Column(nullable = false, length = 10)
     private String gender;
     
-    @Size(max = 12)
-    @Pattern(regexp = "^[0-9]{12}$", message = "Aadhaar number must be a 12-digit numeric value")
-    @Column(name = "aadhaar_number", unique = true, length = 12)
+    
+    @Column(name = "aadhaar_number", unique = false)
     private String aadhaarNumber;
 
     @NotNull(message = "Contact is required")

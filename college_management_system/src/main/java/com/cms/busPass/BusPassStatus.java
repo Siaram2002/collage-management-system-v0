@@ -6,7 +6,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum BusPassStatus {
     ACTIVE("ACTIVE"),     
     EXPIRED("EXPIRED"),    
-    CANCELLED("CANCELLED"),  
+    CANCELLED("CANCELLED"), 
+    INACTIVE("INACTIVE"),
     PENDING("PENDING");     
 
     private final String value;

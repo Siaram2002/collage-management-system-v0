@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: college_management_system
@@ -10,7 +13,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update        # <-- auto-create missing tables
+      ddl-auto: update
     show-sql: false
     properties:
       hibernate:
@@ -26,19 +29,19 @@ spring:
 # COMMON FILE STORAGE CONFIG
 # ----------------------------------------
 file-storage:
-  base-dir: uploads                  # root folder for all files
-  base-url: http://localhost:8080/files
+  base-dir: uploads
+  base-url: http://localhost:9090/files   # UPDATED PORT
 
 # --------------------------
 # STUDENT QR CONFIGURATION
 # --------------------------
 buspass:
   qr:
-    secret-key: 12345678901234567890123456789012   # 32-byte AES key
+    secret-key: 12345678901234567890123456789012
     width: 250
     height: 250
-    base-dir: ${file-storage.base-dir}/qr/students    # folder path
-    base-url: ${file-storage.base-url}/qr/students    # URL for DB storage
+    base-dir: ${file-storage.base-dir}/qr/students
+    base-url: ${file-storage.base-url}/qr/students   # UPDATED PORT
     file-extension: .png
 
 # --------------------------
@@ -46,7 +49,7 @@ buspass:
 # --------------------------
 photo:
   base-dir: ${file-storage.base-dir}/photos/students
-  base-url: ${file-storage.base-url}/photos/students
+  base-url: ${file-storage.base-url}/photos/students   # UPDATED PORT
   file-extension: .jpg
 
 logging:

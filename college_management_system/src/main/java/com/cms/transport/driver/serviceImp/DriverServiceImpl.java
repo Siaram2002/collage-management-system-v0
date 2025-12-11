@@ -71,8 +71,8 @@ public class DriverServiceImpl implements DriverService {
 			contact = contactRepository.save(contact);
 		driver.setContact(contact);
 
-		if (driver.getStatus() == null)
-			driver.setStatus(DriverStatus.INACTIVE);
+	
+			driver.setStatus(DriverStatus.ACTIVE);
 
 		Driver savedDriver = driverRepository.save(driver);
 
@@ -208,25 +208,29 @@ public class DriverServiceImpl implements DriverService {
 
 	@Override
 	public Driver updateStatus(Long driverId, String status) {
-		Driver driver = getDriverById(driverId);
-		if (status.equalsIgnoreCase("ACTIVE")) {
-			driver.setStatus(DriverStatus.ACTIVE);
-			if (driver.getUserAccount() != null) {
-				driver.getUserAccount().setStatus(com.cms.common.enums.Status.ACTIVE);
-				commonUserService.updateUser(driver.getUserAccount());
-			}
-		} else if (status.equalsIgnoreCase("INACTIVE")) {
-			driver.setStatus(DriverStatus.INACTIVE);
-			if (driver.getUserAccount() != null) {
-				driver.getUserAccount().setStatus(com.cms.common.enums.Status.INACTIVE);
-				commonUserService.updateUser(driver.getUserAccount());
-			}
-		} else {
-			throw new IllegalArgumentException("Invalid status: " + status);
-		}
+	    Driver driver = getDriverById(driverId);
 
-		return driverRepository.save(driver);
+	    // Convert the input status to uppercase for safety
+	    String normalizedStatus = status.toUpperCase();
+
+	    // Validate status
+	    if (!normalizedStatus.equals("ACTIVE") && !normalizedStatus.equals("INACTIVE")) {
+	        throw new IllegalArgumentException("Invalid status: " + status);
+	    }
+
+	    // Update driver status
+	    driver.setStatus(DriverStatus.valueOf(normalizedStatus));
+
+	    // Update user account status if exists
+	    if (driver.getUserAccount() != null) {
+	        driver.getUserAccount().setStatus(com.cms.common.enums.Status.valueOf(normalizedStatus));
+	        commonUserService.updateUser(driver.getUserAccount());
+	    }
+
+	    // Save and return updated driver
+	    return driverRepository.save(driver);
 	}
+
 
 	// ---------------- QR SCAN ----------------
 	@Override

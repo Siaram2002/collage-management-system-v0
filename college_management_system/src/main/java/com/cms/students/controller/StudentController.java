@@ -8,6 +8,7 @@ import com.cms.students.dto.StudentProfileDTO;
 import com.cms.students.mappers.StudentMapper;
 import com.cms.students.mappers.StudentToProfileMapper;
 import com.cms.students.models.Student;
+import com.cms.students.services.StudentBulkUploadService;
 import com.cms.students.services.StudentService;
 
 import lombok.RequiredArgsConstructor;
@@ -119,6 +120,45 @@ public class StudentController {
             return ResponseEntity
                     .status(HttpStatus.NOT_FOUND)
                     .body(ApiResponse.fail("Student not found"));
+        }
+    }
+    
+    private final StudentBulkUploadService studentBulkUploadService;
+
+    /**
+     * Upload students Excel + Images folder path
+     */
+    @PostMapping("/upload")
+    public ResponseEntity<ApiResponse> uploadBulkStudents(
+            @RequestParam("file") MultipartFile excelFile,
+            @RequestParam(value = "imagesFolderPath", required = false) String imagesFolderPath
+    ) {
+        log.info("Received bulk student upload request");
+
+        try {
+            if (excelFile == null || excelFile.isEmpty()) {
+                return ResponseEntity.badRequest().body(
+                        ApiResponse.fail("Excel file is required")
+                );
+            }
+
+            // If user didn't provide images folder path -> use null or default
+            if (imagesFolderPath == null || imagesFolderPath.isBlank()) {
+                imagesFolderPath = "";
+            }
+
+            studentBulkUploadService.uploadStudentsBulk(excelFile, imagesFolderPath);
+
+            return ResponseEntity.ok(
+                    ApiResponse.success("Bulk upload completed successfully")
+            );
+
+        } catch (Exception e) {
+            log.error("Bulk upload failed: {}", e.getMessage(), e);
+
+            return ResponseEntity.internalServerError().body(
+                    ApiResponse.fail("Bulk upload failed: " + e.getMessage())
+            );
         }
     }
 }

@@ -141,4 +141,31 @@ public class BusPassService {
             studentBusPassRepository.save(newMapping);
         });
     }
+    
+    @Transactional
+    public BusPass updateBusPassStatusByRollNumber(String rollNumber, BusPassStatus newStatus) {
+
+        // 1. Find the latest mapping using roll number
+        StudentBusPass mapping = studentBusPassRepository
+                .findByRollNumber(rollNumber)
+                .orElseThrow(() -> new RuntimeException(
+                        "No bus pass found for roll number = " + rollNumber));
+
+        // 2. Fetch actual bus pass from the UID
+        BusPass busPass = busPassRepository.findByBusPassUid(mapping.getBusPassUid())
+                .orElseThrow(() -> new RuntimeException(
+                        "Bus pass not found for UID = " + mapping.getBusPassUid()));
+
+        // 3. Update status
+        busPass.setStatus(newStatus);
+
+        // 4. Save
+        busPassRepository.save(busPass);
+
+        log.info("Bus pass UID={} for rollNumber={} updated to status={}",
+                busPass.getBusPassUid(), rollNumber, newStatus);
+
+        return busPass;
+    }
+
 }
