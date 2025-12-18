@@ -1,6 +1,7 @@
 package com.cms.attendance.lecture.dto;
 
 import com.cms.attendance.comman.enums.LectureStatus;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 
@@ -19,8 +20,17 @@ public class LectureResponseDTO {
 
     private String subjectName;
 
+//    private LocalDate lectureDate;
+//    private LocalTime startTime;
+//    private LocalTime endTime;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate lectureDate;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime startTime;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss")
     private LocalTime endTime;
 
     private String lectureType;
@@ -31,5 +41,7 @@ public class LectureResponseDTO {
 
     private LectureStatus status;
 
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 }
