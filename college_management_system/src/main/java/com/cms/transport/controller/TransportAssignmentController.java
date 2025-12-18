@@ -2,6 +2,7 @@ package com.cms.transport.controller;
 
 import com.cms.common.ApiResponse;
 import com.cms.transport.bus.models.Bus;
+import com.cms.transport.dto.AssignmentResponseDTO;
 import com.cms.transport.dto.BusGpsDto;
 import com.cms.transport.dto.TransportAssignmentDTO;
 import com.cms.transport.models.TransportAssignment;
@@ -60,14 +61,17 @@ public class TransportAssignmentController {
         );
     }
 
-    // ---------------- GET ALL ----------------
+    // ---------------- GET ALL -----------------
     @GetMapping
     public ResponseEntity<ApiResponse> getAll() {
         log.info("API: Get all transport assignments");
 
-        List<TransportAssignmentDTO> list = assignmentService.getAllAssignments()
-                .stream()
-                .map(this::mapEntityToDto)
+        // Return full entities with driver, bus, and route details
+        List<TransportAssignment> assignments = assignmentService.getAllAssignments();
+        
+        // Map to DTOs with full details
+        List<TransportAssignmentDTO> list = assignments.stream()
+                .map(this::mapEntityToDtoWithDetails)
                 .collect(Collectors.toList());
 
         return ResponseEntity.ok(
@@ -91,11 +95,35 @@ public class TransportAssignmentController {
     private TransportAssignmentDTO mapEntityToDto(TransportAssignment entity) {
         TransportAssignmentDTO dto = new TransportAssignmentDTO();
         dto.setAssignmentId(entity.getAssignmentId());
-        dto.setBusId(entity.getBus().getBusId());
-        dto.setDriverId(entity.getDriver().getDriverId());
-        dto.setRouteId(entity.getRoute().getRouteId());
+        if (entity.getBus() != null) {
+            dto.setBusId(entity.getBus().getBusId());
+        }
+        if (entity.getDriver() != null) {
+            dto.setDriverId(entity.getDriver().getDriverId());
+        }
+        if (entity.getRoute() != null) {
+            dto.setRouteId(entity.getRoute().getRouteId());
+        }
         dto.setAssignmentDate(entity.getAssignmentDate());
         dto.setStatus(entity.getStatus());
+        return dto;
+    }
+    
+    // Map entity to DTO with full driver, bus, and route details
+    private TransportAssignmentDTO mapEntityToDtoWithDetails(TransportAssignment entity) {
+        TransportAssignmentDTO dto = mapEntityToDto(entity);
+        
+        // Add nested objects for frontend
+        if (entity.getDriver() != null) {
+            dto.setDriver(entity.getDriver());
+        }
+        if (entity.getBus() != null) {
+            dto.setBus(entity.getBus());
+        }
+        if (entity.getRoute() != null) {
+            dto.setRoute(entity.getRoute());
+        }
+        
         return dto;
     }
     
@@ -108,5 +136,16 @@ public class TransportAssignmentController {
                 ApiResponse.success("Buses for the route fetched successfully", buses)
         );
     }
+    private final TransportAssignmentService transportAssignmentService;
 
+    // ============================================================
+    // GET ALL ASSIGNMENTS (TABLE VIEW)
+    // ============================================================
+    @GetMapping("/table")
+    public ResponseEntity<List<AssignmentResponseDTO>> getAssignmentsForTable() {
+
+        return ResponseEntity.ok(
+                transportAssignmentService.getAllAssignmentsForTable()
+        );
+    }
 }

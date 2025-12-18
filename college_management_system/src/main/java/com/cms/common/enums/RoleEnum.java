@@ -7,7 +7,8 @@ import com.fasterxml.jackson.annotation.JsonValue;
 public enum RoleEnum {
     STUDENT("STUDENT"),
     DRIVER("DRIVER"),
-    ADMIN("ADMIN");
+    ADMIN("ADMIN"),
+    FACULTY("FACULTY");
 
     private final String roleName;
 

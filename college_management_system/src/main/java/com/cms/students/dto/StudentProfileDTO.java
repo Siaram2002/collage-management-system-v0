@@ -16,7 +16,7 @@ public class StudentProfileDTO {
 
 
     // ---------------- Basic Info ----------------
-   
+    private Long studentId;
 
     private String firstName;
     private String middleName;
@@ -67,7 +67,6 @@ public class StudentProfileDTO {
 
     // ---------------- Media Info ----------------
     private String photoUrl;
-
-
+    private String qrCodeUrl;
 
 }

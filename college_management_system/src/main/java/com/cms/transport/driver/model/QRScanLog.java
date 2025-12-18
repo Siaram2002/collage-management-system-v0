@@ -61,4 +61,18 @@ public class QRScanLog {
     @Column(length = 255)
     private String notes;
 
+    // ---------------- SCAN STATUS ----------------
+    @Column(name = "scan_status", length = 20)
+    private String scanStatus = "VALID";
+
+    // ---------------- LOCATION DATA ----------------
+    @Column(name = "location_address", length = 255)
+    private String locationAddress;
+
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
 }

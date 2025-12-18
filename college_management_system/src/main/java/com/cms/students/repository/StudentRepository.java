@@ -91,6 +91,9 @@ public interface StudentRepository extends JpaRepository<Student, Long>, JpaSpec
     List<String> findAllAdmissionNumbers();
 	Optional<Student> findByRollNumberAndAdmissionNumber(String rollNumber, String admissionNumber);
     
+    // Find students by department class
+    List<Student> findByDepartmentClass_DepartmentClassId(Long departmentClassId);
+    
     
     
     

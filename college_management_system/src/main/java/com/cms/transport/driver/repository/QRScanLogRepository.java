@@ -1,6 +1,7 @@
 package com.cms.transport.driver.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.cms.transport.driver.model.QRScanLog;
@@ -15,4 +16,14 @@ public interface QRScanLogRepository extends JpaRepository<QRScanLog, Long> {
      */
 	List<QRScanLog> findByDriver_DriverIdOrderByScannedAtDesc(Long driverId);
 
+    /**
+     * Fetch all QR scan logs with student, driver, bus, and route data eagerly loaded
+     */
+    @Query("SELECT q FROM QRScanLog q " +
+           "LEFT JOIN FETCH q.student " +
+           "LEFT JOIN FETCH q.driver " +
+           "LEFT JOIN FETCH q.bus " +
+           "LEFT JOIN FETCH q.route " +
+           "ORDER BY q.scannedAt DESC")
+    List<QRScanLog> findAllWithRelations();
 }

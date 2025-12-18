@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -78,6 +79,11 @@ public class BusPassService {
         if (studentPhoto != null && !studentPhoto.isEmpty()) {
             String photoUrl = studentImageStorageService.saveStudentImage(student.getRollNumber(), studentPhoto);
             busPass.setStudentPhotoUrl(photoUrl);
+        } else {
+            // If no new photo provided (e.g. admin flow), reuse existing student photo if available
+            if (student.getPhotoUrl() != null && !student.getPhotoUrl().isBlank()) {
+                busPass.setStudentPhotoUrl(student.getPhotoUrl());
+            }
         }
 
         // 6. Generate QR code containing busPassUid
@@ -88,6 +94,12 @@ public class BusPassService {
 
         // 7. Update latest student → busPass mapping
         updateStudentBusPassMapping(busPass);
+
+        // 8. Mark student as transport-enabled (used by frontend "transport management")
+        if (Boolean.FALSE.equals(student.getTransportEnabled())) {
+            student.setTransportEnabled(true);
+            studentRepository.save(student);
+        }
 
         log.info("Issued new bus pass UID={} for rollNumber={}", busPass.getBusPassUid(), busPass.getRollNumber());
         return busPass;

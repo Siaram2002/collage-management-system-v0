@@ -11,6 +11,7 @@ import com.cms.common.repositories.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -95,4 +96,10 @@ public class CommonUserService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
     }
+
+
+    public Optional<User> findByUsername(String username) {
+        return userRepository.findByUsername(username);
+    }
+
 }

@@ -15,6 +15,9 @@ import com.cms.students.enums.StudentStatus;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.cms.college.models.DepartmentClass;
+
+
 
 @Data
 @Builder
@@ -53,8 +56,8 @@ public class Student {
     @Column(nullable = false, length = 10)
     private String gender;
     
-    
-    @Column(name = "aadhaar_number", unique = false)
+
+    @Column(name = "aadhaar_number", length = 12)
     private String aadhaarNumber;
 
     @NotNull(message = "Contact is required")
@@ -90,11 +93,13 @@ public class Student {
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private StudentStatus status = StudentStatus.ACTIVE;
 
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private EnrollmentStatus enrollmentStatus = EnrollmentStatus.ENROLLED;
 
     @OneToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
@@ -119,13 +124,26 @@ public class Student {
     @Column(length = 255)
     private String photoUrl;
 
+    @Size(max = 255)
+    @Column(length = 255)
+    private String qrCodeUrl;
 
+    @Column(name = "transport_enabled", nullable = false)
+    @Builder.Default
+    private Boolean transportEnabled = false;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+    /**
+     * Class / Section for attendance (CSE-A, CSE-B, etc.)
+     * OPTIONAL field – does not affect existing code
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "department_class_id", nullable = true)
+    private DepartmentClass departmentClass;
 
 
 }

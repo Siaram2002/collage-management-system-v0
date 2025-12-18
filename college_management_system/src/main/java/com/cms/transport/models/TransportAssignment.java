@@ -1,5 +1,6 @@
 package com.cms.transport.models;
 
+import com.cms.transport.driver.enums.ShiftType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -52,9 +53,24 @@ public class TransportAssignment {
     @Enumerated(EnumType.STRING)
     private TransportStatus status = TransportStatus.ACTIVE;
 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "shift", nullable = false)
+    private ShiftType shift = ShiftType.MORNING;
+
+
+    @Column(name = "start_date")
+    private LocalDate startDate;
+
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
 }

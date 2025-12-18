@@ -7,6 +7,7 @@ import com.cms.transport.route.models.Route;
 import com.cms.transport.enums.TransportStatus;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
@@ -44,5 +45,26 @@ public interface TransportAssignmentRepository extends JpaRepository<TransportAs
     
     List<TransportAssignment> findByRouteRouteId(Long routeId);
 
+    /**
+     * Fetch all assignments with driver, bus, and route data eagerly loaded
+     */
+//    @Query("SELECT a FROM TransportAssignment a " +
+//           "LEFT JOIN FETCH a.driver " +
+//           "LEFT JOIN FETCH a.bus " +
+//           "LEFT JOIN FETCH a.route " +
+//           "ORDER BY a.createdAt DESC")
+//    List<TransportAssignment> findAllWithRelations();
+
+    // ============================================================
+    // Fetch ALL assignments with relations (TABLE VIEW API)
+    // ============================================================
+    @Query("""
+        SELECT a FROM TransportAssignment a
+        LEFT JOIN FETCH a.driver
+        LEFT JOIN FETCH a.bus
+        LEFT JOIN FETCH a.route
+        ORDER BY a.createdAt DESC
+    """)
+    List<TransportAssignment> findAllWithRelations();
 
 }

@@ -28,6 +28,7 @@ public class SecurityConfig {
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                 	       .requestMatchers(
+                                   "/uploads/faculty/**",        // ✅ Add this line
                                    "/photos/students/**",
                                    "/qr/students/**",
                                    "/photos/drivers/**",

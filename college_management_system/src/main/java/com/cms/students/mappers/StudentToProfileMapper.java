@@ -12,10 +12,11 @@ public class StudentToProfileMapper {
 
         return StudentProfileDTO.builder()
                 // Basic Info
+                .studentId(s.getStudentId())
                 .firstName(s.getFirstName())
                 .middleName(s.getMiddleName())
                 .lastName(s.getLastName())
-                .dob(s.getDob().toString())
+                .dob(s.getDob() != null ? s.getDob().toString() : null)
                 .gender(s.getGender())
                 .bloodGroup(s.getBloodGroup())
                 .category(s.getCategory())
@@ -49,6 +50,7 @@ public class StudentToProfileMapper {
                 .adhaarNumber(s.getAadhaarNumber())
                 // Media Info
                 .photoUrl(s.getPhotoUrl())
+                .qrCodeUrl(s.getQrCodeUrl())
 
                 .build();
     }

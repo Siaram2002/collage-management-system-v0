@@ -98,8 +98,17 @@ public class RouteServiceImpl implements RouteService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<RouteDTO> getAllRoutes() {
-        return routeRepo.findAll().stream()
+        // Fetch routes and initialize steps (lazy loading requires transaction)
+        List<Route> routes = routeRepo.findAll();
+        // Trigger lazy loading of steps by accessing them
+        routes.forEach(route -> {
+            if (route.getSteps() != null) {
+                route.getSteps().size(); // Force initialization
+            }
+        });
+        return routes.stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }

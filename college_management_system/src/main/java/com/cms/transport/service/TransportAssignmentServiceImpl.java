@@ -7,6 +7,7 @@ import com.cms.transport.bus.repositories.BusRepository;
 import com.cms.transport.driver.enums.DriverStatus;
 import com.cms.transport.driver.model.Driver;
 import com.cms.transport.driver.repository.DriverRepository;
+import com.cms.transport.dto.AssignmentResponseDTO;
 import com.cms.transport.dto.BusGpsDto;
 import com.cms.transport.dto.TransportAssignmentDTO;
 import com.cms.transport.models.TransportAssignment;
@@ -171,7 +172,7 @@ public class TransportAssignmentServiceImpl implements TransportAssignmentServic
 
     @Override
     public List<TransportAssignment> getAllAssignments() {
-        return assignmentRepo.findAll();
+        return assignmentRepo.findAllWithRelations();
     }
 
     // ================= DELETE =================
@@ -240,7 +241,51 @@ public class TransportAssignmentServiceImpl implements TransportAssignmentServic
                 .collect(Collectors.toList());
     }
 
+//    @Override
+//    public List<AssignmentResponseDTO> getAllAssignmentsForTable() {
+//        return List.of();
+//    }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<AssignmentResponseDTO> getAllAssignmentsForTable() {
+
+        return assignmentRepo.findAllWithRelations()
+                .stream()
+                .map(a -> {
+
+                    boolean onLeave =
+                            a.getDriver().getStatus() != DriverStatus.ACTIVE;
+
+                    return AssignmentResponseDTO.builder()
+                            .assignmentDate(a.getAssignmentDate())
+
+                            .busNumber(a.getBus().getBusNumber())
+
+                            .driverName(a.getDriver().getFullName())
+                            .driverPhoto(a.getDriver().getPhotoUrl())
+
+                            .routeName(a.getRoute().getRouteName())
+
+                            .shift(
+                                    a.getShift() != null
+                                            ? a.getShift().name().replace("_", " ")
+                                            : "MORNING"
+                            )
+
+                            .startDate(
+                                    a.getStartDate() != null
+                                            ? a.getStartDate()
+                                            : a.getAssignmentDate()
+                            )
+
+                            .endDate(a.getEndDate())
+
+                            .leaveStatus(onLeave ? "ON_LEAVE" : "AVAILABLE")
+                            .build();
+                })
+                .toList();
+    }
 
 
 

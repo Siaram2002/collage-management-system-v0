@@ -1,6 +1,7 @@
 package com.cms.transport.service;
 
 import com.cms.transport.bus.models.Bus;
+import com.cms.transport.dto.AssignmentResponseDTO;
 import com.cms.transport.dto.BusGpsDto;
 import com.cms.transport.dto.TransportAssignmentDTO;
 import com.cms.transport.models.TransportAssignment;
@@ -20,5 +21,8 @@ public interface TransportAssignmentService {
     void deleteAssignment(Long assignmentId);
     
     List<BusGpsDto> getBusesByRoute(Long routeId);
+
+    List<AssignmentResponseDTO> getAllAssignmentsForTable();
+
 
 }
