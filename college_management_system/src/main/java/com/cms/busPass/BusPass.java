@@ -5,6 +5,9 @@ import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import com.fasterxml.jackson.annotation.JsonFormat;
+
+
 
 @Entity
 @Table(name = "bus_pass", indexes = {
@@ -44,8 +47,16 @@ public class BusPass {
 
     private String qrUrl;
 
+//    private LocalDateTime issuedAt;
+//    private LocalDateTime validTill;
+
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime issuedAt;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
     private LocalDateTime validTill;
+
 
     @Enumerated(EnumType.STRING)
     private BusPassStatus status = BusPassStatus.ACTIVE;

@@ -109,9 +109,13 @@ public class BusPassService {
      * QR SCAN → FETCH BUS PASS + STUDENT DETAILS
      */
     public BusPass scanBusPass(String busPassUid) {
+
     	System.out.println(busPassUid);
+
         return busPassRepository.findByBusPassUid(busPassUid)
                 .orElseThrow(() -> new RuntimeException("Invalid or expired bus pass UID"));
+
+
     }
 
     /**

@@ -235,6 +235,8 @@ public class DriverServiceImpl implements DriverService {
 	// ---------------- QR SCAN ----------------
 	@Override
 	public BusPass driverScanResult(String qrUid, Long driverId) throws Exception {
+
+
 	    // 1️⃣ Validate input
 	    if (qrUid == null ) {
 	        throw new IllegalArgumentException("Invalid QR data received");
@@ -244,7 +246,7 @@ public class DriverServiceImpl implements DriverService {
 	    // 3️⃣ Fetch the bus pass using BusPassService
 	    BusPass busPass = busPassService.scanBusPass(qrUid);
 	    
-	    
+	    System.out.println(busPass.toString());
 
 	    // 4️⃣ Optionally log the scan
 	    qrScanLogService.createLog(busPass.getRollNumber(), driverId);
